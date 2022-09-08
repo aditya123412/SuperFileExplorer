@@ -1,0 +1,30 @@
+{
+  "OperationName": "Sort",
+  "Arguments": {
+    "Files": {
+      "OperationName": "ProjectAll",
+      "Arguments": {
+        "Path": {
+          "OperationName": "STR",
+          "Arguments": {
+            "C:\\Windows": null
+          }
+        }
+      }
+    },
+    "Order": {
+      "OperationName": "STR",
+      "Arguments": {
+        "Desc": null
+      }
+    },
+    "Field": {
+      "OperationName": "STR",
+      "Arguments": {
+        "FileName": null
+      }
+    }
+  }
+}
+
+context=getFiles();
