@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Classes\Classes.csproj" />
+    <ProjectReference Include="..\TreeDb\TreeDb.csproj" />
   </ItemGroup>
 
   <ItemGroup>

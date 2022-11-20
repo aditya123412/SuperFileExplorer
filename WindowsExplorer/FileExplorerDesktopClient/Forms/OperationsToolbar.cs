@@ -8,18 +8,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace FileExplorerDesktopClient
+namespace Windows_Explorer.Forms
 {
-    public partial class ExplorerClient : Form
+    public partial class OperationsToolbar : Form
     {
-        public ExplorerClient()
+        public OperationsToolbar()
         {
             InitializeComponent();
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
-
         }
     }
 }

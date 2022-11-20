@@ -21,15 +21,23 @@ namespace Classes.Operations
         {
             engine.SetValue(operation.Descriptor.OperationName, operation.Evaluate);
         }
-        public object ExecuteScript(string script, IEnumerable<DataObject> initObjects)
+        public object ExecuteScriptOrGetValue<type>(string script, IEnumerable<DataObject> initObjects = null, string returnValue = "context", bool execute = true, Object defaulVal = null)
         {
-            engine.SetValue("context", "");
+            if (!execute)
+            {
+                return (type)defaulVal;
+            }
+            engine.SetValue("context", defaulVal);
+            if (initObjects == null)
+            {
+                initObjects = new List<DataObject>();
+            }
             foreach (var initObject in initObjects)
             {
                 engine.SetValue(initObject.Name, initObject.Value);
             }
-            var result = engine.Execute(script).GetValue("context").ToObject();
-            return (List<IDescriptorNode>)result;
+            var result = engine.Execute(script).GetValue(returnValue).ToObject();
+            return (type)result;
         }
         public void SetObject<T>(string objName, T value)
         {

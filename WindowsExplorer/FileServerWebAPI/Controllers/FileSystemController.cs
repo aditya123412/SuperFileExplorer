@@ -28,7 +28,7 @@ namespace FileServerWebAPI.Controllers
         [HttpPost(Name = "ExecuteScript")]
         public object ExecuteScript(string script)
         {
-            return ScriptExecutor.ExecuteScript(script, new DataObject[] { });
+            return new ScriptExecutor().ExecuteScriptOrGetValue<Object>(script, new DataObject[] { });
         }
     }
 }

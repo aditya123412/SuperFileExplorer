@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace FileExplorerDesktopClient.Properties
+namespace Windows_Explorer.Properties
 {
 
 

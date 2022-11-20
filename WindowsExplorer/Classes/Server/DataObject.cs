@@ -33,6 +33,12 @@ namespace Classes.Operations
             Name = name;
             Value = value;
         }
+        public DataObject(Object value, string name = "value")
+        {
+            Type = DataObjectType.BLOB;
+            Name = name;
+            Value = value;
+        }
         public DataObject(IDescriptorNode singleFileOrFolder, string name = "value")
         {
             Type = DataObjectType.SingleFile;
