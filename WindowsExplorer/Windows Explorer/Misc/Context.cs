@@ -1,4 +1,5 @@
 ﻿using Windows_Explorer.FileAndFolder;
+using Windows_Explorer.Forms;
 using Type = Windows_Explorer.FileAndFolder.Type;
 
 namespace Windows_Explorer.Misc
@@ -17,7 +18,7 @@ namespace Windows_Explorer.Misc
         public static FFBase WorkingObject { get; set; }
 
         public static bool CtrlKeyPressed, AltKeyPressed, ShiftKeyPressed;
-
+        public static MainWindow MainWindow;
         public static int CursorAt { get; set; } = 0;
         public static DirectoryInfo Directory { get; set; }
         public static string Path { get; set; }
@@ -165,7 +166,7 @@ namespace Windows_Explorer.Misc
             }
         }
 
-        public static FFBaseCollection GetItemsList(string name, bool onlySelected = true, Action<string> IfListNotExist = null)
+        public static FFBaseCollection GetItemsList(string name, bool onlySelected = false, Action<string> IfListNotExist = null)
         {
             if (!Context.Lists.ContainsKey(name))
             {

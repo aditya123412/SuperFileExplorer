@@ -67,6 +67,10 @@ namespace Windows_Explorer.ActiveControls
                 Display.Image = data.DefaultIcon;
             }
             IconSize = iconSize;
+            if (_type == Type.File)
+            {
+                Controls.Add(new Label() { Text = data.Size.ToString(), Top = Label.Bottom });
+            }
             this.SetEventHandlers((x) =>
             {
                 x.Click += new EventHandler(IconBox_Click);
@@ -140,7 +144,6 @@ namespace Windows_Explorer.ActiveControls
             var me = (MouseEventArgs)e;
             if (me.Button == MouseButtons.Right)
             {
-                new SingleItemsActionsBox(fileItem).Show();
             }
             else if (me.Button == MouseButtons.Left)
             {

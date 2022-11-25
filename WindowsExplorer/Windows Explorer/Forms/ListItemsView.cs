@@ -21,7 +21,7 @@ namespace Windows_Explorer.Forms
         public ListItemsView(FFBaseCollection items, string groupName)
         {
             InitializeComponent();
-            new GridView(0, 0, panel1.Width, panel1.Height, panel1, groupName, items);
+            //new GridView(0, 0, panel1.Width, panel1.Height, panel1, groupName, items);
         }
 
         private void ListItemsView_Load(object sender, EventArgs e)

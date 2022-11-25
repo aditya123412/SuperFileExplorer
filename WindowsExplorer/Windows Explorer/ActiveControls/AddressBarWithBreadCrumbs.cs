@@ -39,13 +39,16 @@ namespace Windows_Explorer.ActiveControls
             int left = 0;
             foreach (var breadCrumb in breadCrumbs)
             {
-                partialPath = Path.Combine(partialPath, breadCrumb);
-                var crumb = new Button() { Visible = true, Text = breadCrumb, Font = textBox1.Font, Left = left, Tag = partialPath, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink };
-                crumb.Refresh();
-                crumb.Click += new EventHandler(_Navigate);
-                this.panel1.Controls.Add(crumb);
-                left += crumb.Width;
-                _breadcrumbs.Add(crumb);
+                if (!string.IsNullOrEmpty(breadCrumb))
+                {
+                    partialPath = Path.Combine(partialPath, breadCrumb);
+                    var crumb = new Button() { Visible = true, Text = breadCrumb, Font = textBox1.Font, Left = left, Tag = partialPath, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink };
+                    crumb.Refresh();
+                    crumb.Click += new EventHandler(_Navigate);
+                    this.panel1.Controls.Add(crumb);
+                    left += crumb.Width;
+                    _breadcrumbs.Add(crumb);
+                }
             }
         }
 

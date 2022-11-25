@@ -262,6 +262,7 @@
             this.SortDescebdubgCheckBox.TabIndex = 8;
             this.SortDescebdubgCheckBox.Text = "Descending";
             this.SortDescebdubgCheckBox.UseVisualStyleBackColor = true;
+            this.SortDescebdubgCheckBox.CheckedChanged += new System.EventHandler(this.SortDescebdubgCheckBox_CheckedChanged);
             // 
             // button7
             // 

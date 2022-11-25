@@ -1,10 +1,12 @@
 ﻿using System.Drawing.Printing;
 using System.Linq;
 using System.Windows.Forms;
+using Eto.IO;
 using Microsoft.WindowsAPICodePack.Shell;
 using Windows_Explorer.ActiveControls;
 using Windows_Explorer.FileAndFolder;
 using Windows_Explorer.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Windows_Explorer.Misc
 {
@@ -25,52 +27,13 @@ namespace Windows_Explorer.Misc
         public List<List<ClickableItemBase>> Rows = new List<List<ClickableItemBase>>();
         public Func<(string path, FileAndFolder.Type type, Func<IconBox, object> OnClicked, Func<IconBox, object> OnDblClicked), UserControl> GetUserControl { get; set; }
         public Dictionary<string, List<ClickableItemBase>> Groups { get; set; } = new Dictionary<string, List<ClickableItemBase>>();
+        public int IconSize { get; set; }
 
-        public GridView(int top, int left, int width, int height, Control parent, string Title,
-                        FFBaseCollection items,
-                        int margin = 30, int gap = 0, bool scrollBars = false)
-        {
-            mainPanel = new Panel();
-            mainPanel.Parent = parent;
-            mainPanel.Top = top;
-            mainPanel.Left = left;
-            mainPanel.Width = width;
-            mainPanel.Height = height;
-            mainPanel.Margin = new Padding(0);
-            mainPanel.Padding = new Padding(0);
-            mainPanel.AutoScroll = scrollBars;
-            mainPanel.AutoSize = !scrollBars;
-
-            Label label = new Label();
-            label.Text = Title;
-            label.Parent = mainPanel;
-            label.Top = 15; label.Left = 25;
-
-            this.Parent = parent;
-            this.FSItems = items;
-
-            int index = 0;
-            foreach (var item in items)
-            {
-                var icon = new IconBox(item, 100);
-                icon.Parent = mainPanel;
-                icon.Key_Down = Key_Down;
-                icon.Key_Up = Key_Up;
-                icon.fileItem.DataActions[FFBase.Click] = (FFBase f) => { CursorPosition = index; return null; };
-
-                icon.Index = index++;
-                Items.Add(icon);
-            }
-            drawTop = label.Top + label.Height + margin;
-            ArrangeIcons(margin, gap, gap);
-
-            fetchThumbnailsThread = new Thread(this.UpdateThumbnailsAsync);
-
-            FetchThumbnailStart();
-        }
-        public GridView(Panel container, Dictionary<string, FFBaseCollection> itemGroups, bool scrollBars = true)//:this(container, itemGroups.ToDictionary(x=>x.Key, x => x.Value.Select(y=>new IconBox(y) as ClickableItemBase).ToList()))
+        public GridView(Panel container, Dictionary<string, FFBaseCollection> itemGroups, bool scrollBars = true, int iconSize = 100)//:this(container, itemGroups.ToDictionary(x=>x.Key, x => x.Value.Select(y=>new IconBox(y) as ClickableItemBase).ToList()))
         {
             FSItems = new List<FFBase>();
+
+            this.IconSize = iconSize;
 
             int index = 0;
             Groups.Clear();
@@ -86,10 +49,30 @@ namespace Windows_Explorer.Misc
                     {
                         var icon = new IconBox(item);
 
+                        icon.Key_Down = Key_Down;
+                        icon.Key_Up = Key_Up;
+                        icon.ClickableBaseActions[FFBase.Click] = (ClickableItemBase cb) =>
+                        {
+                            if (!MultiSelect)
+                            {
+                                UnselectAll();
+                            }
+                            CursorPosition = icon.Index;
+                            (cb as IconBox).Selected = true;
+                            icon.Focus(); return null;
+                        };
+                        icon.SetEventHandlers(x =>
+                        {
+                            x.KeyDown += new KeyEventHandler((obj, args) => { Key_Down(args); });
+                            x.KeyUp += new KeyEventHandler((obj, args) => { Key_Up(args); });
+                            x.KeyPress += new KeyPressEventHandler((obj, args) => { Key_Press(args); });
+                            x.Click += new EventHandler(RightClickHandler);
+                        });
+                        icon.KeyPress = (icon, key) => { Key_Down(new KeyEventArgs(key)); };
+
                         icon.Index = index++;
                         Items.Add(icon);
                         groupItems.Add(icon);
-                        icon.Parent = container;
                     }
                     Groups.Add(group.Key, groupItems);
                     group.Value.OnOrderChange = (FFlist) => { Draw(); };
@@ -105,53 +88,22 @@ namespace Windows_Explorer.Misc
             fetchThumbnailsThread = new Thread(this.UpdateThumbnailsAsync);
             FetchThumbnailStart();
             RenderGridView(container, Groups);
-            Groups.First().Value.First().Focus();
         }
         public void RenderGridView(Panel container, Dictionary<string, List<ClickableItemBase>> itemGroups, bool scrollBars = true)
         {
             mainPanel = container;
             mainPanel.AutoScroll = scrollBars;
             mainPanel.AutoSize = !scrollBars;
-
+            Groups = itemGroups;
             Draw();
+            Groups.First().Value.First().Focus();
         }
 
-        public GridView(Panel container, List<(string groupName, FFBaseCollection GroupList)> itemGroups, bool scrollBars = true) : this(container, itemGroups.ToDictionary(x => x.groupName, x =>
+        public GridView(Panel container, List<(string groupName, FFBaseCollection GroupList)> itemGroups, bool scrollBars = true, int iconSize = 100) : this(container, itemGroups.ToDictionary(x => x.groupName, x =>
             {
                 return x.GroupList;
-            }), scrollBars)
+            }), scrollBars, iconSize)
         {
-            //FSItems = new List<FFBase>();
-
-            //int index = 0;
-            //Groups.Clear();
-            //foreach (var group in itemGroups)
-            //{
-            //    if (group.GroupList.Count > 0)
-            //    {
-
-            //        FSItems.AddRange(group.GroupList);
-            //        var groupItems = new List<ClickableItemBase>();
-
-            //        foreach (var item in group.GroupList)
-            //        {
-            //            var icon = new IconBox(item);
-
-            //            icon.Index = index++;
-            //            Items.Add(icon);
-            //            groupItems.Add(icon);
-            //        }
-            //        Groups.Add(group.groupName, groupItems);
-            //        group.GroupList.OnOrderChange = (FFlist) => { Draw(); };
-            //        group.GroupList.OnItemsChange = (FFlist) => { Draw(); };
-            //        group.GroupList.OnRemoveItem = (FFlist) => { Draw(); };
-            //        group.GroupList.OnAdd = (FFlist) => { Draw(); };
-            //        group.GroupList.OnItemChange = (FFlist) => { Draw(); };
-            //    }
-            //}
-            //fetchThumbnailsThread = new Thread(this.UpdateThumbnailsAsync);
-            //FetchThumbnailStart();
-            //RenderGridView(container, Groups);
         }
 
         public void Draw()
@@ -159,7 +111,8 @@ namespace Windows_Explorer.Misc
             previousRowbottom = 0;
             mainPanel.Controls.Clear();
             Rows.Clear();
-
+            BackColor = Color.Red;
+            WinApi.MakeTransparent(this.Handle);
             int drawableWidth = mainPanel.Width - (2 * OuterMargin);
 
             var row = new List<ClickableItemBase>();
@@ -177,31 +130,13 @@ namespace Windows_Explorer.Misc
                 mainPanel.Controls.Add(groupHeadingRow);
 
                 var groupBodyRow = CreateRow(mainPanel);
+                WinApi.MakeTransparent(groupBodyRow.Handle);
 
                 int drawTop = OuterMargin;
                 int drawLeft = OuterMargin;
                 foreach (var cib in Groups[group])
                 {
                     var icon = (IconBox)cib;
-                    icon.Key_Down = Key_Down;
-                    icon.Key_Up = Key_Up;
-                    icon.ClickableBaseActions[FFBase.Click] = (ClickableItemBase cb) =>
-                    {
-                        if (!MultiSelect)
-                        {
-                            UnselectAll();
-                        }
-                        CursorPosition = icon.Index;
-                        (cb as IconBox).Selected = true; status.Text = icon.Index.ToString();
-                        icon.Focus(); return null;
-                    };
-                    icon.SetEventHandlers(x =>
-                    {
-                        x.KeyDown += new KeyEventHandler((obj, args) => { status.Text = MultiSelect.ToString(); Key_Down(args); });
-                        x.KeyUp += new KeyEventHandler((obj, args) => { status.Text = MultiSelect.ToString(); Key_Up(args); });
-                        x.KeyPress += new KeyPressEventHandler((obj, args) => { Key_Press(args); });
-                    });
-                    icon.KeyPress = (icon, key) => { Key_Down(new KeyEventArgs(key)); };
 
                     if ((drawLeft + icon.Width + HorizontalGap < drawableWidth) && (!icon.FullWidth))
                     {
@@ -229,6 +164,22 @@ namespace Windows_Explorer.Misc
                 previousRowbottom = groupBodyRow.Bottom;
                 mainPanel.Controls.Add(groupBodyRow);
                 drawTop = label.Top + label.Height + OuterMargin;
+            }
+        }
+
+        private void RightClickHandler(object? sender, EventArgs e)
+        {
+            var me = e as MouseEventArgs;
+            var iconBox = Items[CursorPosition];
+            if (me.Button == MouseButtons.Right)
+            {
+                ActionsMenu actionMenu = new ActionsMenu(iconBox.fileItem);
+                actionMenu.Show();
+                actionMenu.Focus();
+
+                actionMenu.Top = Cursor.Position.Y;
+                actionMenu.Left = Cursor.Position.X;
+                this.Refresh();
             }
         }
 
@@ -272,18 +223,17 @@ namespace Windows_Explorer.Misc
                         }
                         pos++;
                     });
-                    int dest = Math.Max(0, CursorPosition - Rows.First().Count - 1);
+                    int destUp = Math.Max(0, CursorPosition - Rows.First().Count - 1);
                     if (keyEventArgs.Shift)
                     {
-                        for (int i = dest; i < CursorPosition; i++)
+                        for (int i = destUp; i < CursorPosition; i++)
                         {
-                            Items[Math.Max(0, dest)].Selected = true;
-                            Items[Math.Max(0, dest)].Focus();
+                            Items[i].Selected = true;
                         }
                     }
-                    Items[Math.Max(0, dest)].Selected = true;
-                    Items[Math.Max(0, dest)].Focus();
-                    CursorPosition = dest;
+                    Items[destUp].Selected = true;
+                    Items[destUp].Focus();
+                    CursorPosition = destUp;
                     break;
                 case Keys.Down:
                     pos = 0;
@@ -300,10 +250,16 @@ namespace Windows_Explorer.Misc
                         pos++;
                     });
                     int destDown = Math.Min(Items.Count - 1, CursorPosition + Rows.First().Count + 1);
+                    if (keyEventArgs.Shift)
+                    {
+                        for (int i = CursorPosition; i < destDown; i++)
+                        {
+                            Items[i].Selected = true;
+                        }
+                    }
+                    Items[destDown].Selected = true;
+                    Items[destDown].Focus();
                     CursorPosition = destDown;
-                    Items[Math.Max(0, destDown)].Selected = true;
-                    Items[Math.Max(0, destDown)].Focus();
-
                     break;
                 case Keys.Left:
                     pos = 0;
@@ -347,15 +303,35 @@ namespace Windows_Explorer.Misc
                     UnselectAll();
                     this.Items.Last().Selected = true;
                     break;
+                case Keys.Apps:
+                    break;
+                case Keys.OemMinus:
+                    ResizeIcons(this.IconSize -= 10);
+                    break;
+                case Keys.Oemplus:
+                    ResizeIcons(this.IconSize += 10);
+                    break;
                 case Keys.ControlKey:
                     MultiSelect = true;
+                    break;
+                case Keys.Enter:
+                    MainFunctions.FileDoubleClicked(Items[CursorPosition].fileItem);
                     break;
                 default:
                     break;
             }
             if (keyEventArgs.KeyCode >= Keys.A && keyEventArgs.KeyCode <= Keys.Z)
             {
-
+                UnselectAll();
+                for (int i = CursorPosition; i < Items.Count; i++)
+                {
+                    if (Items[i].fileItem.Name[0] == keyEventArgs.KeyValue)
+                    {
+                        Items[i].Selected = true;
+                        CursorPosition = i;
+                        break;
+                    }
+                }
             }
             return 0;
         }
@@ -413,9 +389,6 @@ namespace Windows_Explorer.Misc
 
             iconBoxes.ForEach((iconBox) =>
             {
-                //iconBox.Top = drawTop;
-                //iconBox.Left = drawLeft;
-                //row.Add(iconBox);
 
                 if ((drawLeft + iconBox.Width + HorizontalGap < drawableWidth) && (!iconBox.FullWidth))
                 {
@@ -483,7 +456,7 @@ namespace Windows_Explorer.Misc
 
         public override IViewPanel Get(PanelConfig panelConfig)
         {
-            return new GridView(panelConfig.Top, panelConfig.Left, panelConfig.Width, panelConfig.Height, panelConfig.ParentView, panelConfig.Title, panelConfig.Files, panelConfig.Margin, panelConfig.Gap, panelConfig.ScrollBars);
+            return null; //new GridView(panelConfig.Top, panelConfig.Left, panelConfig.Width, panelConfig.Height, panelConfig.ParentView, panelConfig.Title, panelConfig.Files, panelConfig.Margin, panelConfig.Gap, panelConfig.ScrollBars);
         }
 
         public override List<ClickableItemBase> GetSelected()
@@ -503,23 +476,25 @@ namespace Windows_Explorer.Misc
 
         public override int GetCursorPosition()
         {
-            return 0;
+            return CursorPosition;
         }
 
         public override void SetCursorPosition(int position)
         {
-            throw new NotImplementedException();
+            this.CursorPosition = position;
+            Items[CursorPosition].Selected = true;
         }
 
-        internal static GridView CreateViewGroup(int v1, int v2, int v3, int v4, Panel mainViewArea, string name, FFBaseCollection items)
+        public FFBaseCollection GetSelectedItems()
         {
-            return new GridView(v1, v2, v3, v4, mainViewArea, name, items);
+            return new FFBaseCollection(Items.Where(item => item.Selected).Select(x => x.fileItem));
         }
-        internal static GridView CreateViewGroup(Panel mainViewArea, Dictionary<string, FFBaseCollection> items)
+
+        public static GridView CreateViewGroup(Panel mainViewArea, Dictionary<string, FFBaseCollection> items)
         {
             return new GridView(mainViewArea, items);
         }
-        internal static GridView CreateViewGroup(Panel container, List<(string groupName, FFBaseCollection fileItems)> items)
+        public static GridView CreateViewGroup(Panel container, List<(string groupName, FFBaseCollection fileItems)> items)
         {
             return new GridView(container, items);
         }
@@ -562,42 +537,14 @@ namespace Windows_Explorer.Misc
         {
             try
             {
-                //if (MainFunctions.ImageCacheExists(Context.Path))
-                //{
-                //    ImageCache = MainFunctions.LoadImageCache(Context.Path);
-                //}
-                //else
-                //{
-                //    ImageCache = new Dictionary<string, Image>();
-                //}
-                //bool cacheInvalidated = false;
-                //Items.ForEach(x =>
-                //{
-                //    if (ImageCache.ContainsKey(x.Name))
-                //    {
-                //        x.Display.Image = ImageCache[x.Name];
-                //    }
-                //    else
-                //    {
-                //        ShellObject shellObject = ShellObject.FromParsingName(x.fileItem.FullPath);
-                //        var pic = shellObject.Thumbnail.Bitmap;
-                //        pic.MakeTransparent();
-                //        ImageCache.Add(x.Name, pic);
-                //        x.Display.Image = pic;
-                //        cacheInvalidated = true;
-                //    }
-                //});
-                //if (cacheInvalidated)
-                //    MainFunctions.SaveImageCache(ImageCache, Context.Path);
-
-                //else
-                //{
                 for (int i = 0; i < Items.Count; i++)
                 {
                     var icon = Items.ElementAt(i);
-                    this.SetThumbnailAsync(icon, icon.Data);
+                    if (icon.fileItem.Thumbnail == null)
+                    {
+                        this.SetThumbnailAsync(icon, icon.Data);
+                    }
                 }
-                //}
             }
             catch (Exception e)
             {
@@ -607,6 +554,8 @@ namespace Windows_Explorer.Misc
         {
             ShellObject shellObject = ShellObject.FromParsingName(path);
             var pic = shellObject.Thumbnail.Bitmap;
+            icon.fileItem.Thumbnail = pic;
+
             pic.MakeTransparent();
             icon.Display.Image = pic;
         }
@@ -617,27 +566,9 @@ namespace Windows_Explorer.Misc
             pic.MakeTransparent();
             icon.Display.Image = pic;
         }
-
     }
     public enum ViewType
     {
         Icons, Rows, Columns
-    }
-    public class GridItem : ClickableItemBase
-    {
-        public int Row { get; set; }
-        public int Column { get; set; }
-        public int Index { get; set; }
-        public GridItem() : base()
-        {
-            this.KeyPress += new KeyPressEventHandler(this.OnGridItemKeyPress);
-        }
-        void OnGridItemKeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (true)
-            {
-
-            }
-        }
     }
 }

@@ -6,6 +6,7 @@ using TreeDb.Classes;
 using Windows_Explorer.ActiveControls;
 using Windows_Explorer.FileAndFolder;
 using Windows_Explorer.Misc;
+using GridView = Windows_Explorer.Misc.GridView;
 using Type = Windows_Explorer.FileAndFolder.Type;
 
 namespace Windows_Explorer.Forms
@@ -34,17 +35,9 @@ namespace Windows_Explorer.Forms
             InitializeComponent();
             fetchThumbnailsThread = new Thread(this.UpdateThumbnailsAsync);
             db.SaveDatabaseToDisk(Path.Combine(Application.CommonAppDataPath, "dbconfig.json"));
-            addressBarWithBreadCrumbs1.Navigate = RenderView;
-            Context.NavigationHandlers.Add(RenderView);
-        }
-        private void FetchThumbnailStart()
-        {
-            if (fetchThumbnailsThread.ThreadState == System.Threading.ThreadState.Running)
-            {
-                fetchThumbnailsThread.Interrupt();
-            }
-            fetchThumbnailsThread = new Thread(this.UpdateThumbnailsAsync);
-            fetchThumbnailsThread.Start();
+            addressBarWithBreadCrumbs1.Navigate = NavigateMainWindow;
+            Context.NavigationHandlers.Add(NavigateMainWindow);
+            Context.MainWindow = this;
         }
         private void UpdateThumbnailsAsync()
         {
@@ -95,33 +88,7 @@ namespace Windows_Explorer.Forms
             });
         }
 
-        //public void GetContextItems(string path)
-        //{
-        //    var directory = new DirectoryInfo(path);
-        //    var openFSItems = new List<FFBase>();
-        //    const string FILES = "Files", FOLDERS = "Folders";
-        //    Context.Lists.Add(FOLDERS, new List<FFBase>());
-        //    foreach (var folder in directory.GetDirectories())
-        //    {
-        //        var item = this.GetMetadata(folder.FullName, Type.Folder);
-        //        item.OnDblClick = this.FileDoubleClicked;
-        //        openFSItems.Add(item);
-        //        Context.Lists[FOLDERS].Add(item);
-        //    }
-        //    Context.Lists.Add(FILES, new List<FFBase>());
-        //    foreach (var file in directory.GetFiles())
-        //    {
-        //        var item = this.GetMetadata(file.FullName, Type.File);
-        //        item.OnDblClick = this.FileDoubleClicked;
-        //        openFSItems.Add(item);
-        //        Context.Lists[FILES].Add(item);
-        //    }
-        //    Context.ViewGroupNames.Add(FOLDERS);
-        //    Context.ViewGroupNames.Add(FILES);
-        //    Context.SetContext (path, openFSItems);
-        //}
-
-        public object RenderView(string path)
+        public object NavigateMainWindow(string path)
         {
             ContextPath = path;
             try
@@ -136,31 +103,15 @@ namespace Windows_Explorer.Forms
                         return true;
                         break;
                     default:
+                        this.addressBarWithBreadCrumbs1.Text = path;
 
                         Context.GetContextItems(path);
-                        MainViewArea.Name = Context.Directory.Name;
-                        MainViewArea.Controls.Clear();
-                        this.addressBarWithBreadCrumbs1.Text = path;
-                        icons.Clear();
-
-                        panel = Misc.GridView.CreateViewGroup(MainViewArea, Context.ViewGroupNames.Select(name => (name, Context.GetItemsList(name, false))).ToList());
-
-                        Context.MainPanel = panel;
-
+                        SetWindowGridItems(Context.ViewGroupNames.Select(name => (name, Context.GetItemsList(name, false))).ToList());
                         Watcher = new FileSystemWatcher(path);
                         Watcher.Changed += new FileSystemEventHandler((s, e) =>
                         {
                             Context.GetContextItems(path);
-                            MainViewArea.Name = Context.Directory.Name;
-                            MainViewArea.Controls.Clear();
-
-                            icons.Clear();
-                            //Context.Lists[Context.Main].Clear();
-
-                            var nodesInfo = new List<FileSystemInfo>();
-
-                            panel = Misc.GridView.CreateViewGroup(8, 8, MainViewArea.Width - 8, MainViewArea.Height - 8,
-                                MainViewArea, Context.Directory.Name, Context.Lists[Context.Main]);
+                            SetWindowGridItems(Context.ViewGroupNames.Select(name => (name, Context.GetItemsList(name, false))).ToList());
                         });
                         return true;
                 }
@@ -169,8 +120,21 @@ namespace Windows_Explorer.Forms
             {
                 return false;
             }
+
         }
 
+        public void SetWindowGridItems(List<(string, FFBaseCollection)> itemGroups)
+        {
+            MainViewArea.Name = Context.Directory.Name;
+            MainViewArea.Controls.Clear();
+            icons.Clear();
+
+            panel = Misc.GridView.CreateViewGroup(MainViewArea, itemGroups);
+            this.Resize += new EventHandler((o, e) => {
+                ((GridView)panel).Draw();
+            });
+            Context.MainPanel = panel;
+        }
         private void RenderHomeView()
         {
             try
@@ -186,25 +150,13 @@ namespace Windows_Explorer.Forms
                     var driveInfo = new FFBase() { Type = Type.Folder, Name = drive.Name, Location = "", FullPath = drive.Name };
                     driveInfo.DataActions[FFBase.DoubleClick] = MainFunctions.FileDoubleClicked;
                     drives.Add(driveInfo);
-
-                    //IconBox driveIcon = new IconBox(drive.Name, 100, null, Type.Folder, $"{drive.Name}", $"{drive.Name}");
-                    //this.icons.Add(driveIcon);
-
-                    //driveIcon.Parent = this.MainViewArea;
-                    //driveIcon.fileItem.FullPath = drive.Name;
-                    //driveIcon.fileItem.Type = Type.Folder;
-                    //driveIcon.fileItem.DataActions[FFBase.DoubleClick] = MainFunctions.FileDoubleClicked;
                 }
                 Context.SetContext("", new FFBaseCollection(drives));
                 panel = Misc.GridView.CreateViewGroup(MainViewArea, Context.ViewGroupNames.Select(name => (name, Context.GetItemsList(name, false))).ToList());
                 Context.MainPanel = panel;
-
-                //ArrangeIcons();
-                //FetchThumbnailStart();
             }
             catch (Exception e)
             {
-
                 throw;
             }
         }
@@ -221,9 +173,32 @@ namespace Windows_Explorer.Forms
                 new Dictionary<string, Delegate> { { "Test", null } },
                 MenuOrientation.Vertical,
                 200, 40, Color.Red, Color.DodgerBlue, Color.White);
+
             RenderHomeView();
+
+            WinApi.MakeTransparent(this.Handle);
+
         }
 
+
+        protected  void WndProc1(ref Message m)
+        {
+            switch (m.Msg)
+            {
+                case (int)WinApi.WinMessage.WM_DWMCOMPOSITIONCHANGED:
+                    if (WinApi.IsDWNCompositionEnabled())
+                    {
+                        WinApi.Dwm.DWMNCRENDERINGPOLICY policy = WinApi.Dwm.DWMNCRENDERINGPOLICY.Enabled;
+                        WinApi.Dwm.WindowSetAttribute(this.Handle, WinApi.Dwm.DWMWINDOWATTRIBUTE.NCRenderingPolicy, (int)policy);
+                        WinApi.Dwm.WindowBorderlessDropShadow(this.Handle, 1);
+                        m.Result = (IntPtr)0;
+                    }
+                    break;
+                default:
+                    break;
+            }
+            base.WndProc(ref m);
+        }
         private void ExplorerWindow_SizeChanged(object sender, EventArgs e)
         {
             ArrangeIcons();
