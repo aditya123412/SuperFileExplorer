@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TreeDb", "TreeDb\TreeDb.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DB Test", "DB Test\DB Test.csproj", "{15E81F10-1B9E-4468-A248-A123680937F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Windows Explorer", "Windows Explorer\Windows Explorer.csproj", "{3A5E35EB-1861-4B84-A890-113EB4BEDAF9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Windows Explorer", "Windows Explorer\Windows Explorer.csproj", "{3A5E35EB-1861-4B84-A890-113EB4BEDAF9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsExplorer WPF NET", "WindowsExplorer WPF NET\WindowsExplorer WPF NET.csproj", "{E99380C5-6B19-41EE-9E46-989D6FB2302F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{3A5E35EB-1861-4B84-A890-113EB4BEDAF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A5E35EB-1861-4B84-A890-113EB4BEDAF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A5E35EB-1861-4B84-A890-113EB4BEDAF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E99380C5-6B19-41EE-9E46-989D6FB2302F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E99380C5-6B19-41EE-9E46-989D6FB2302F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E99380C5-6B19-41EE-9E46-989D6FB2302F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E99380C5-6B19-41EE-9E46-989D6FB2302F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

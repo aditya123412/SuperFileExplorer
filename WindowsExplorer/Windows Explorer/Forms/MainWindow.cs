@@ -130,7 +130,8 @@ namespace Windows_Explorer.Forms
             icons.Clear();
 
             panel = Misc.GridView.CreateViewGroup(MainViewArea, itemGroups);
-            this.Resize += new EventHandler((o, e) => {
+            this.Resize += new EventHandler((o, e) =>
+            {
                 ((GridView)panel).Draw();
             });
             Context.MainPanel = panel;
@@ -181,7 +182,7 @@ namespace Windows_Explorer.Forms
         }
 
 
-        protected  void WndProc1(ref Message m)
+        protected void WndProc1(ref Message m)
         {
             switch (m.Msg)
             {
@@ -207,6 +208,11 @@ namespace Windows_Explorer.Forms
         private void addressBarWithBreadCrumbs1_Load(object sender, EventArgs e)
         {
 
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            new ListView(false, null);
         }
 
         private void button5_Click(object sender, EventArgs e)

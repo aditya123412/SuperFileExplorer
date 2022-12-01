@@ -12,6 +12,7 @@ namespace Windows_Explorer.Misc
         public const string Selected = "$MAIN";
         public static string WorkingListName = Main;
         public const string CLIPBOARD = "$CLIPBOARD";
+        public const string BOOKMARKS = "$BOOKMARKS";
         public const string SENDTO = "$SENDTO";
 
         public static FFBaseCollection WorkingList { get; set; } = new FFBaseCollection();
@@ -23,7 +24,10 @@ namespace Windows_Explorer.Misc
         public static DirectoryInfo Directory { get; set; }
         public static string Path { get; set; }
         public static FFBaseCollection Files { get; set; } = new FFBaseCollection();
-        public static Dictionary<string, FFBaseCollection> Lists { get; set; } = new Dictionary<string, FFBaseCollection>();
+        public static Dictionary<string, FFBaseCollection> Lists { get; set; } = new Dictionary<string, FFBaseCollection> {
+            { CLIPBOARD, new FFBaseCollection() },
+            { BOOKMARKS, new FFBaseCollection() }
+        };
         public static List<string> ViewGroupNames
         {
             get

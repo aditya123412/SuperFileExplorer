@@ -26,7 +26,6 @@ namespace Windows_Explorer.ActiveControls
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-            Set();
         }
 
         private void Set()

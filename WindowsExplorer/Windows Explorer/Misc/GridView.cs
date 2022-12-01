@@ -12,7 +12,7 @@ namespace Windows_Explorer.Misc
 {
     public class GridView : IViewPanel
     {
-        private Panel mainPanel;
+        public Panel mainPanel;
         private int drawTop;
         private int previousRowbottom = 0;
 
@@ -49,8 +49,6 @@ namespace Windows_Explorer.Misc
                     {
                         var icon = new IconBox(item);
 
-                        icon.Key_Down = Key_Down;
-                        icon.Key_Up = Key_Up;
                         icon.ClickableBaseActions[FFBase.Click] = (ClickableItemBase cb) =>
                         {
                             if (!MultiSelect)
@@ -66,7 +64,7 @@ namespace Windows_Explorer.Misc
                             x.KeyDown += new KeyEventHandler((obj, args) => { Key_Down(args); });
                             x.KeyUp += new KeyEventHandler((obj, args) => { Key_Up(args); });
                             x.KeyPress += new KeyPressEventHandler((obj, args) => { Key_Press(args); });
-                            x.Click += new EventHandler(RightClickHandler);
+                            x.Click += new EventHandler((o, e) => { RightClickHandler(icon, e); });
                         });
                         icon.KeyPress = (icon, key) => { Key_Down(new KeyEventArgs(key)); };
 
@@ -96,7 +94,10 @@ namespace Windows_Explorer.Misc
             mainPanel.AutoSize = !scrollBars;
             Groups = itemGroups;
             Draw();
-            Groups.First().Value.First().Focus();
+            if (itemGroups.SelectMany(x=>x.Value.ToList()).Count()>0)
+            {
+                Groups.First().Value.First().Focus();
+            }
         }
 
         public GridView(Panel container, List<(string groupName, FFBaseCollection GroupList)> itemGroups, bool scrollBars = true, int iconSize = 100) : this(container, itemGroups.ToDictionary(x => x.groupName, x =>
@@ -108,6 +109,7 @@ namespace Windows_Explorer.Misc
 
         public void Draw()
         {
+            mainPanel.Controls.Clear();
             previousRowbottom = 0;
             mainPanel.Controls.Clear();
             Rows.Clear();
@@ -130,7 +132,10 @@ namespace Windows_Explorer.Misc
                 mainPanel.Controls.Add(groupHeadingRow);
 
                 var groupBodyRow = CreateRow(mainPanel);
-                WinApi.MakeTransparent(groupBodyRow.Handle);
+                groupBodyRow.SuspendLayout();
+                groupBodyRow.Paint += new PaintEventHandler((o, e) =>
+                {
+                });
 
                 int drawTop = OuterMargin;
                 int drawLeft = OuterMargin;
@@ -162,6 +167,7 @@ namespace Windows_Explorer.Misc
 
                 groupBodyRow.Top = previousRowbottom;
                 previousRowbottom = groupBodyRow.Bottom;
+                groupBodyRow.ResumeLayout(false);
                 mainPanel.Controls.Add(groupBodyRow);
                 drawTop = label.Top + label.Height + OuterMargin;
             }
@@ -170,7 +176,7 @@ namespace Windows_Explorer.Misc
         private void RightClickHandler(object? sender, EventArgs e)
         {
             var me = e as MouseEventArgs;
-            var iconBox = Items[CursorPosition];
+            var iconBox = sender as IconBox;
             if (me.Button == MouseButtons.Right)
             {
                 ActionsMenu actionMenu = new ActionsMenu(iconBox.fileItem);

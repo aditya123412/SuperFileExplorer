@@ -38,6 +38,7 @@
             this.button4 = new System.Windows.Forms.Button();
             this.button5 = new System.Windows.Forms.Button();
             this.addressBarWithBreadCrumbs1 = new Windows_Explorer.ActiveControls.AddressBarWithBreadCrumbs();
+            this.button6 = new System.Windows.Forms.Button();
             this.TopToolBar.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -104,7 +105,8 @@
             // 
             // TopToolBar
             // 
-            this.TopToolBar.BackColor = System.Drawing.SystemColors.Control;
+            this.TopToolBar.BackColor = System.Drawing.Color.Transparent;
+            this.TopToolBar.Controls.Add(this.button6);
             this.TopToolBar.Controls.Add(this.button4);
             this.TopToolBar.Controls.Add(this.button2);
             this.TopToolBar.Controls.Add(this.button1);
@@ -112,7 +114,7 @@
             this.TopToolBar.Location = new System.Drawing.Point(14, 10);
             this.TopToolBar.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.TopToolBar.Name = "TopToolBar";
-            this.TopToolBar.Size = new System.Drawing.Size(492, 72);
+            this.TopToolBar.Size = new System.Drawing.Size(687, 72);
             this.TopToolBar.TabIndex = 4;
             // 
             // button4
@@ -159,6 +161,21 @@
             this.addressBarWithBreadCrumbs1.TabIndex = 8;
             this.addressBarWithBreadCrumbs1.Load += new System.EventHandler(this.addressBarWithBreadCrumbs1_Load);
             // 
+            // button6
+            // 
+            this.button6.BackColor = System.Drawing.Color.DodgerBlue;
+            this.button6.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.button6.ForeColor = System.Drawing.Color.White;
+            this.button6.Location = new System.Drawing.Point(578, 13);
+            this.button6.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
+            this.button6.Name = "button6";
+            this.button6.Size = new System.Drawing.Size(105, 40);
+            this.button6.TabIndex = 4;
+            this.button6.Text = "Lists";
+            this.button6.UseVisualStyleBackColor = false;
+            this.button6.Click += new System.EventHandler(this.button6_Click);
+            // 
             // MainWindow
             // 
             this.AllowDrop = true;
@@ -197,5 +214,6 @@
         private System.Windows.Forms.Button button4;
         private System.Windows.Forms.Button button5;
         private ActiveControls.AddressBarWithBreadCrumbs addressBarWithBreadCrumbs1;
+        private Button button6;
     }
 }

@@ -14,19 +14,23 @@ namespace Windows_Explorer.Forms
 {
     public partial class ListItemsView : Form
     {
-        public ListItemsView()
+        public List<FFBase> Items { get; set; }
+        public ListItemsView(List<FFBase> fFBases):this(new FFBaseCollection(fFBases), Context.Main)
         {
-            InitializeComponent();
+            Items = fFBases;            
         }
+
         public ListItemsView(FFBaseCollection items, string groupName)
         {
             InitializeComponent();
-            //new GridView(0, 0, panel1.Width, panel1.Height, panel1, groupName, items);
+            Items = items;
+            panel1=  GridView.CreateViewGroup(panel1, new Dictionary<string, FFBaseCollection> { { groupName, new FFBaseCollection(Items)} });
+            this.Text = groupName;
+            ShowDialog();
         }
 
         private void ListItemsView_Load(object sender, EventArgs e)
         {
-
         }
     }
 }

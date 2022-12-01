@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Data;
+using Windows_Explorer.ActiveControls;
 using Windows_Explorer.Misc;
+using GridView = Windows_Explorer.Misc.GridView;
 
 namespace Windows_Explorer.Forms
 {
@@ -20,7 +14,15 @@ namespace Windows_Explorer.Forms
             this.mainWindow = mainWindow;
             InitializeComponent();
             BackColor = SystemColors.ActiveBorder;
-            WinApi.MakeTransparent(this.Handle);
+            this.Leave += new EventHandler((o, e) =>
+            {
+                Close();
+            });
+            this.LostFocus += new EventHandler((o, e) =>
+            {
+                Close();
+            });
+            Focus();
         }
 
         private void IconType_CheckedChanged(object sender, EventArgs e)
@@ -101,9 +103,9 @@ namespace Windows_Explorer.Forms
             var items = gridview.Groups.SelectMany(x => x.Value);
 
             Dictionary<string, List<ActiveControls.ClickableItemBase>> iconGroups = new Dictionary<string, List<ActiveControls.ClickableItemBase>>();
-            foreach (var item in items)
+            foreach (IconBox item in items)
             {
-                var key = item.Name.Substring(0, 1);
+                var key = item.fileItem.Name.Substring(0, 1);
                 if (!iconGroups.ContainsKey(key))
                 {
                     iconGroups.Add(key, new List<ActiveControls.ClickableItemBase> { item });
@@ -114,7 +116,7 @@ namespace Windows_Explorer.Forms
                 }
 
             }
-            gridview.RenderGridView(gridview, iconGroups);
+            gridview.RenderGridView(gridview.mainPanel, iconGroups);
         }
 
         private void button12_Click(object sender, EventArgs e)

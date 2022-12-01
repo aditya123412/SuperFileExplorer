@@ -46,7 +46,7 @@
             this.textBox1.Size = new System.Drawing.Size(880, 27);
             this.textBox1.TabIndex = 0;
             this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
-            this.textBox1.LostFocus += new System.EventHandler(this.textBox1_LostFocus);
+            this.textBox1.Leave += new System.EventHandler(this.textBox1_LostFocus);
             // 
             // button1
             // 
@@ -90,7 +90,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
-            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
+            this.BackColor = System.Drawing.Color.Transparent;
             this.Controls.Add(this.button2);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.button1);

@@ -15,6 +15,7 @@ namespace Windows_Explorer.Misc
         public Action<FFBaseCollection> OnOrderChange = null;
         public Action<FFBase> OnItemChange = null;
 
+        public string Name { get; set; }
 
         public new FFBase this[int index]
         {
@@ -33,19 +34,28 @@ namespace Windows_Explorer.Misc
         {
             base.Add(fFBase);
             //OnAdd(new FFBaseCollection() { fFBase });
-            //OnItemsChange(this);
+            if (OnItemChange!=null)
+            {
+                OnItemsChange(this);
+            }
         }
         public new void AddRange(IEnumerable<FFBase> fFBases)
         {
             base.AddRange(fFBases);
             //OnAdd(new FFBaseCollection(fFBases) );
-            //OnItemsChange(this);
+            if (OnItemChange != null)
+            {
+                OnItemsChange(this);
+            }
         }
         public new bool Remove(FFBase item)
         {
             OnRemoveItem(new FFBaseCollection() { item});
             var result = base.Remove(item);
-            OnItemsChange(this);
+            if (OnItemChange != null)
+            {
+                OnItemsChange(this);
+            }
             return result;
         }
         public new void RemoveAt(int index)
@@ -53,12 +63,18 @@ namespace Windows_Explorer.Misc
             var item = base[index];
             OnRemoveItem(new FFBaseCollection() { item });
             base.Remove(item);
-            OnItemsChange(this);
+            if (OnItemChange != null)
+            {
+                OnItemsChange(this);
+            }
         }
         public new void RemoveRange(int start, int count)
         {
             base.RemoveRange(start, count);
-            OnItemsChange(this);
+            if (OnItemChange != null)
+            {
+                OnItemsChange(this);
+            }
         }
         public void Sort<FFBase>(IComparer<FileAndFolder.FFBase>? comparer)
         {

@@ -1,0 +1,52 @@
+﻿<Window x:Class="WindowsExplorer_WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WindowsExplorer_WPF" xmlns:misc="clr-namespace:WindowsExplorer_WPF.Misc"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" WindowState="Maximized">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" x:Name="LeftPane"></ColumnDefinition>
+            <ColumnDefinition Width="*" x:Name="Middle"></ColumnDefinition>
+            <ColumnDefinition Width="300" x:Name="RightPane"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30" />
+            <RowDefinition Height="30" />
+            <RowDefinition Height="30" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="30" />
+        </Grid.RowDefinitions>
+        <TreeView Grid.Row="3" Grid.Column="0" ItemsSource="{Binding Names1}"></TreeView>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"  Grid.Column="1" Grid.Row="3">
+            <ListView ItemsSource="{Binding Path=MainViewData.Groups}"  >
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Vertical" >
+                            <TextBlock Text="{Binding Path=Key}" Margin="10" Background="Azure"></TextBlock>
+                            <ListView ItemsSource="{Binding Path=Value}">
+                                <ListView.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid x:Name="GroupGrid" VerticalAlignment="Top" HorizontalAlignment="Left" Columns="15"></UniformGrid>
+                                    </ItemsPanelTemplate>
+                                </ListView.ItemsPanel>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <Image MouseDown="TextBlock_MouseDown" Source="{Binding Path=Thumbnail, AsyncState=true}" Width="100" Height="100"></Image>
+                                            <TextBlock TextAlignment="Center" MouseDown="TextBlock_MouseDown" Tag="{Binding Path=FullPath}" Text="{Binding Path=Name}" Width="100" Height="30" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </ScrollViewer>
+
+        <StatusBar Grid.Row="4" Grid.ColumnSpan="3" Grid.Column="0"></StatusBar>
+    </Grid>
+</Window>

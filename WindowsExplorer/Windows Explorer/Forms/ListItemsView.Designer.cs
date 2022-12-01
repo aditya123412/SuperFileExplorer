@@ -40,14 +40,14 @@
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Location = new System.Drawing.Point(1, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(798, 443);
+            this.panel1.Size = new System.Drawing.Size(850, 452);
             this.panel1.TabIndex = 0;
             // 
             // ListItemsView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(852, 459);
             this.Controls.Add(this.panel1);
             this.Name = "ListItemsView";
             this.Text = "ListItemsView";
