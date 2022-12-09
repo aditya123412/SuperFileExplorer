@@ -4,9 +4,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WindowsExplorer_WPF" xmlns:misc="clr-namespace:WindowsExplorer_WPF.Misc"
+        xmlns:misc2="clr-namespace:WindowsExplorer_WPF_NET.Misc"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" WindowState="Maximized">
-    <Grid>
+        Title="MainWindow" Height="450" Width="800" WindowState="Maximized"
+        Name="MainWindow1">
+    <Grid x:Name="MainWindowGrid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="300" x:Name="LeftPane"></ColumnDefinition>
             <ColumnDefinition Width="*" x:Name="Middle"></ColumnDefinition>
@@ -14,19 +16,32 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="30" />
-            <RowDefinition Height="30" />
+            <RowDefinition Height="60" />
             <RowDefinition Height="30" />
             <RowDefinition Height="*" />
             <RowDefinition Height="30" />
         </Grid.RowDefinitions>
-        <TreeView Grid.Row="3" Grid.Column="0" ItemsSource="{Binding Names1}"></TreeView>
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"  Grid.Column="1" Grid.Row="3">
-            <ListView ItemsSource="{Binding Path=MainViewData.Groups}"  >
+        <TreeView Grid.Row="3" Grid.Column="0" ItemsSource="{Binding Path=TreeData}">
+            <TreeView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Path=Caption}" Expander.Expanded="TreeviewNode_Expanded"></TextBlock>
+                    </StackPanel>
+                </DataTemplate>
+            </TreeView.ItemTemplate>
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type misc2:TreeNodeItem}" ItemsSource="{Binding TreeData}">
+                    <TextBlock Text="{Binding}"></TextBlock>
+                </HierarchicalDataTemplate>
+            </TreeView.Resources>
+        </TreeView>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"  Grid.Column="1" Grid.Row="3"  SizeChanged="GroupGrid_SizeChanged">
+            <ListView ItemsSource="{Binding Path=MainViewData.Groups}" Name="GroupsList" SelectionChanged="GroupsList_SelectionChanged">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Vertical" >
-                            <TextBlock Text="{Binding Path=Key}" Margin="10" Background="Azure"></TextBlock>
-                            <ListView ItemsSource="{Binding Path=Value}">
+                            <TextBlock x:Name="GroupName" Text="{Binding Path=Key}" Margin="10" Background="Azure"></TextBlock>
+                            <ListView ItemsSource="{Binding Path=Value}" Name="ItemsList" SelectionChanged="ItemsList_SelectionChanged">
                                 <ListView.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <UniformGrid x:Name="GroupGrid" VerticalAlignment="Top" HorizontalAlignment="Left" Columns="15"></UniformGrid>
@@ -34,7 +49,7 @@
                                 </ListView.ItemsPanel>
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel HorizontalAlignment="Center">
+                                        <StackPanel HorizontalAlignment="Center" Margin="7">
                                             <Image MouseDown="TextBlock_MouseDown" Source="{Binding Path=Thumbnail, AsyncState=true}" Width="100" Height="100"></Image>
                                             <TextBlock TextAlignment="Center" MouseDown="TextBlock_MouseDown" Tag="{Binding Path=FullPath}" Text="{Binding Path=Name}" Width="100" Height="30" />
                                         </StackPanel>
@@ -46,7 +61,90 @@
                 </ListView.ItemTemplate>
             </ListView>
         </ScrollViewer>
-
+        <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal">
+            <StackPanel.Background>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#FF38A71A" Offset="0.866"/>
+                    <GradientStop Color="#FF9AECB5"/>
+                </LinearGradientBrush>
+            </StackPanel.Background>
+            <TextBlock  TextAlignment="Center" MouseDown="HomeButton_MouseLeftButtonDown" FontWeight="Bold" Width="58" Height="22" VerticalAlignment="Center" FontSize="13" Margin="8,0,0,0">
+                Home
+            </TextBlock>
+            <ListView ItemsSource="{Binding Path=MainViewData.BreadCrumbs}" BorderThickness="0,0,0,0" SnapsToDevicePixels="True" BorderBrush="#FF304480">
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel.Background>
+                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                    <GradientStop Color="#FF38A71A" Offset="0.866"/>
+                                    <GradientStop Color="#FF9AECB5"/>
+                                </LinearGradientBrush>
+                            </StackPanel.Background>
+                        </StackPanel>
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Path=Caption}" MouseDown="BreadCrumbClick" FontSize="13" FontWeight="DemiBold" Tag="{Binding Path=FullPath}" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackPanel>
         <StatusBar Grid.Row="4" Grid.ColumnSpan="3" Grid.Column="0"></StatusBar>
+        <UniformGrid Rows="1" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" HorizontalAlignment="Left">
+            <UniformGrid Rows="2" Columns="2" Margin="3 3 8 3">
+                <Button Width="80" Margin="1" Click="Copy">
+                    <StackPanel Orientation="Horizontal">
+                        <Image></Image>
+                        <TextBlock>Copy to</TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Width="80" Margin="1" Click="Paste">
+                    <StackPanel Orientation="Horizontal">
+                        <Image></Image>
+                        <TextBlock>Paste</TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Width="80" Margin="1" Click="Rename">
+                    <StackPanel Orientation="Horizontal">
+                        <Image></Image>
+                        <TextBlock>Rename</TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Width="80" Margin="1" Click="Delete">
+                    <StackPanel Orientation="Horizontal">
+                        <Image></Image>
+                        <TextBlock>Delete</TextBlock>
+                    </StackPanel>
+                </Button>
+            </UniformGrid>
+            <UniformGrid Rows="2" Columns="2" Margin="3 3 8 3">
+                <Button Width="80" Margin="1" Click="SortBy">
+                    <StackPanel Orientation="Horizontal">
+                        <Image></Image>
+                        <TextBlock>Sort By</TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Width="80" Margin="1" Click="GroupBy">
+                    <StackPanel Orientation="Horizontal">
+                        <Image></Image>
+                        <TextBlock>Group By</TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Width="80" Margin="1" Click="Rename">
+                    <StackPanel Orientation="Horizontal">
+                        <Image></Image>
+                        <TextBlock>Filter</TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Width="80" Margin="1" Click="Delete">
+                    <StackPanel Orientation="Horizontal">
+                        <Image></Image>
+                        <TextBlock>Custom</TextBlock>
+                    </StackPanel>
+                </Button>
+            </UniformGrid>
+        </UniformGrid>
     </Grid>
 </Window>

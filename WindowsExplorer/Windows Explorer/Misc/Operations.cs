@@ -7,15 +7,7 @@ namespace Windows_Explorer.Misc
 
         public static List<FFBase> Filter(List<FFBase> items, Func<FFBase, bool> FilterPredicate)
         {
-            var result = new List<FFBase>();
-            foreach (var item in items)
-            {
-                if (FilterPredicate(item))
-                {
-                    result.Add(item);
-                }
-            }
-            return result;
+            return items.Where(FilterPredicate).ToList();
         }
 
         public static List<FFBase> Sort(List<FFBase> items, Func<FFBase, FFBase, int> comparison)
