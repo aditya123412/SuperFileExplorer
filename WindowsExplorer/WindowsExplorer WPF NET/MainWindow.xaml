@@ -3,8 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WindowsExplorer_WPF" xmlns:misc="clr-namespace:WindowsExplorer_WPF.Misc"
+        xmlns:local="clr-namespace:WindowsExplorer_WPF"
         xmlns:misc2="clr-namespace:WindowsExplorer_WPF_NET.Misc"
+        xmlns:controls="Microsoft.Toolkit.Uwp.UI.Controls" xmlns:misc="clr-namespace:WindowsExplorer_WPF.Misc" d:DataContext="{d:DesignInstance Type=misc:MainViewData}"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" WindowState="Maximized"
         Name="MainWindow1">
@@ -21,37 +22,38 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="30" />
         </Grid.RowDefinitions>
-        <TreeView Grid.Row="3" Grid.Column="0" ItemsSource="{Binding Path=TreeData}">
+        <TreeView Grid.Row="3" Grid.Column="0" ItemsSource="{Binding Path=MainViewData.TreeDataRoot.TreeData}">
             <TreeView.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding Path=Caption}" Expander.Expanded="TreeviewNode_Expanded"></TextBlock>
-                    </StackPanel>
-                </DataTemplate>
-            </TreeView.ItemTemplate>
-            <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type misc2:TreeNodeItem}" ItemsSource="{Binding TreeData}">
-                    <TextBlock Text="{Binding}"></TextBlock>
+                    <StackPanel Orientation="Horizontal" MouseDown="TreeItemClick">
+                        <Image Source="{Binding Path=Thumbnail, AsyncState=true}" Width="13" Height="13"></Image>
+                        <TextBlock Text="{Binding Path=Caption}"></TextBlock>
+                    </StackPanel>
                 </HierarchicalDataTemplate>
-            </TreeView.Resources>
+            </TreeView.ItemTemplate>
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="IsExpanded" Value="{Binding Path=IsExpanded}" />
+                </Style>
+            </TreeView.ItemContainerStyle>
         </TreeView>
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"  Grid.Column="1" Grid.Row="3"  SizeChanged="GroupGrid_SizeChanged">
-            <ListView ItemsSource="{Binding Path=MainViewData.Groups}" Name="GroupsList" SelectionChanged="GroupsList_SelectionChanged">
+        <ScrollViewer x:Name="MainScrollableArea" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"  Grid.Column="1" Grid.Row="3"  SizeChanged="GroupGrid_SizeChanged" MouseWheel="ScrollViewer_MouseWheel">
+            <ListView ItemsSource="{Binding Path=MainViewData.Groups}" Name="GroupsList" SelectionChanged="GroupsList_SelectionChanged" MouseWheel="ScrollViewer_MouseWheel">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Vertical" >
-                            <TextBlock x:Name="GroupName" Text="{Binding Path=Key}" Margin="10" Background="Azure"></TextBlock>
-                            <ListView ItemsSource="{Binding Path=Value}" Name="ItemsList" SelectionChanged="ItemsList_SelectionChanged">
+                        <StackPanel Orientation="Vertical" MouseWheel="ScrollViewer_MouseWheel">
+                            <TextBlock x:Name="GroupName" Text="{Binding Path=Key}" Margin="10" Background="Azure" MouseWheel="ScrollViewer_MouseWheel"></TextBlock>
+                            <ListView ItemsSource="{Binding Path=Value}" Name="ItemsList" SelectionChanged="ItemsList_SelectionChanged" MouseWheel="ScrollViewer_MouseWheel">
                                 <ListView.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <UniformGrid x:Name="GroupGrid" VerticalAlignment="Top" HorizontalAlignment="Left" Columns="15"></UniformGrid>
+                                        <UniformGrid x:Name="GroupGrid" VerticalAlignment="Top" HorizontalAlignment="Left" Columns="15" MouseWheel="ScrollViewer_MouseWheel"></UniformGrid>
                                     </ItemsPanelTemplate>
                                 </ListView.ItemsPanel>
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel HorizontalAlignment="Center" Margin="7">
-                                            <Image MouseDown="TextBlock_MouseDown" Source="{Binding Path=Thumbnail, AsyncState=true}" Width="100" Height="100"></Image>
-                                            <TextBlock TextAlignment="Center" MouseDown="TextBlock_MouseDown" Tag="{Binding Path=FullPath}" Text="{Binding Path=Name}" Width="100" Height="30" />
+                                        <StackPanel HorizontalAlignment="Center" Margin="7"  Grid.Column="{Binding Path=X}" Grid.Row="{Binding Path=Y}"  MouseWheel="ScrollViewer_MouseWheel">
+                                            <Image x:Name="IconThumbnail" MouseDown="Icon_Click" Source="{Binding Path=Thumbnail, AsyncState=true}" Width="100" Height="100"></Image>
+                                            <TextBlock x:Name="IconLabel" TextAlignment="Center" MouseDown="Icon_Click" Tag="{Binding Path=FullPath}" Text="{Binding Path=Name}" Width="100" Height="30" TextWrapping="Wrap" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
@@ -71,14 +73,17 @@
             <TextBlock  TextAlignment="Center" MouseDown="HomeButton_MouseLeftButtonDown" FontWeight="Bold" Width="58" Height="22" VerticalAlignment="Center" FontSize="13" Margin="8,0,0,0">
                 Home
             </TextBlock>
-            <ListView ItemsSource="{Binding Path=MainViewData.BreadCrumbs}" BorderThickness="0,0,0,0" SnapsToDevicePixels="True" BorderBrush="#FF304480">
+            <ListView ItemsSource="{Binding Path=MainViewData.BreadCrumbs}" BorderThickness="0,0,0,0" SnapsToDevicePixels="True">
                 <ListView.ItemsPanel>
                     <ItemsPanelTemplate>
                         <StackPanel Orientation="Horizontal">
+                            <StackPanel.Effect>
+                                <DropShadowEffect/>
+                            </StackPanel.Effect>
                             <StackPanel.Background>
                                 <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                                     <GradientStop Color="#FF38A71A" Offset="0.866"/>
-                                    <GradientStop Color="#FF9AECB5"/>
+                                    <GradientStop Color="#FF9AECDF"/>
                                 </LinearGradientBrush>
                             </StackPanel.Background>
                         </StackPanel>
@@ -86,7 +91,14 @@
                 </ListView.ItemsPanel>
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding Path=Caption}" MouseDown="BreadCrumbClick" FontSize="13" FontWeight="DemiBold" Tag="{Binding Path=FullPath}" />
+                        <TextBlock Text="{Binding Path=Caption}" MouseDown="BreadCrumbClick" FontSize="13" FontWeight="DemiBold" Tag="{Binding Path=FullPath}">
+                            <TextBlock.Background>
+                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                    <GradientStop Color="#FFCDD9ED"/>
+                                    <GradientStop Color="#FF43C728" Offset="1"/>
+                                </LinearGradientBrush>
+                            </TextBlock.Background>
+                        </TextBlock>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
@@ -144,6 +156,9 @@
                         <TextBlock>Custom</TextBlock>
                     </StackPanel>
                 </Button>
+            </UniformGrid>
+            <UniformGrid Rows="2" >
+                <Slider x:Name="IconSizeSlider" Minimum="10" Maximum="40" ValueChanged="ResizeMainGridWidth"></Slider>
             </UniformGrid>
         </UniformGrid>
     </Grid>

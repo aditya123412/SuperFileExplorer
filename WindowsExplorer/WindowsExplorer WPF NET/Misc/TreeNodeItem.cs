@@ -1,26 +1,30 @@
-﻿using System.IO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Windows.Media.Imaging;
+using WindowsExplorer_WPF.Misc;
 
 namespace WindowsExplorer_WPF_NET.Misc
 {
-    public class TreeNodeItem
+    public class TreeNodeItem : System.ComponentModel.INotifyPropertyChanged
     {
         public string Caption { get; set; }
         public string FullPath { get; set; }
         public bool IsExpanded { get; set; }
+        public FFBase fFBase { get; set; }
+        public BitmapSource Thumbnail { get; set; }
+        public Action<TreeNodeItem> Click { get; set; } = (TreeNodeItem t) => { };
+        public ObservableCollection<TreeNodeItem> TreeData { get; set; }
 
-        public ObservableCollection<TreeNodeItem> TreeData { get; set; } = new ObservableCollection<TreeNodeItem>() { null };
-
-        public TreeNodeItem(string caption, string fullpath)
+        public TreeNodeItem(string caption, string fullpath, bool createDefaultCollectionChild = false, bool expand = false)
         {
-            TreeData = new ObservableCollection<TreeNodeItem>();
+            TreeData = createDefaultCollectionChild ? new ObservableCollection<TreeNodeItem> { new TreeNodeItem("", "") } : new ObservableCollection<TreeNodeItem>();
             Caption = caption;
             FullPath = fullpath;
+            IsExpanded = expand;
         }
         public void Expand()
         {
@@ -36,6 +40,19 @@ namespace WindowsExplorer_WPF_NET.Misc
                     TreeData.Add(new TreeNodeItem(item.Name, item.FullName));
                 }
             }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged = (o, e) => { };
+        protected bool SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
+        {
+            if (!Equals(field, newValue))
+            {
+                field = newValue;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                return true;
+            }
+
+            return false;
         }
     }
 }

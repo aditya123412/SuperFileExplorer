@@ -28,28 +28,47 @@ namespace WindowsExplorer_WPF.Misc
         public bool IsFolder { get; set; }
         public bool HasThumbnail { get; set; }
         public bool Selected { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
 
         public DateTime LastModified { get; set; }
         public DateTime LastAccessed { get; set; }
         public DateTime Created { get; set; }
         public bool SupportsThumbnail { get; set; }
 
-        public void MouseDownAction(object sender, object e)
+        public void MouseDownAction(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (isSecondClick)
+            switch (e.ChangedButton)
             {
-                DoubleClickIcon();
-                isSecondClick = false;
-                timer.Stop();
-            }
-            else
-            {
-                isSecondClick = true;
-                timer.Start();
+                case System.Windows.Input.MouseButton.Left:
+                    SingleClickIcon();
+                    if (isSecondClick)
+                    {
+                        DoubleClickIcon();
+                        isSecondClick = false;
+                        timer.Stop();
+                    }
+                    else
+                    {
+                        isSecondClick = true;
+                        timer.Start();
+                    }
+                    break;
+                case System.Windows.Input.MouseButton.Middle:
+                    break;
+                case System.Windows.Input.MouseButton.Right:
+                    break;
+                case System.Windows.Input.MouseButton.XButton1:
+                    break;
+                case System.Windows.Input.MouseButton.XButton2:
+                    break;
+                default:
+                    break;
             }
         }
 
         public Action DoubleClickIcon = () => { };
+        public Action SingleClickIcon = () => { };
 
         public event PropertyChangedEventHandler PropertyChanged = (o, s) => { };
 
