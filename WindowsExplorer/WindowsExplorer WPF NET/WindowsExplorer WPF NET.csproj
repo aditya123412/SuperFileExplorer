@@ -131,6 +131,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Controls\Commands Menu.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\DynamicGrid.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -143,6 +147,9 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Controls\Commands Menu.xaml.cs">
+      <DependentUpon>Commands Menu.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\DynamicGrid.xaml.cs">
       <DependentUpon>DynamicGrid.xaml</DependentUpon>
     </Compile>
@@ -153,6 +160,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Misc\Actions\IAction.cs" />
+    <Compile Include="Misc\Data\CommandsMenuContext.cs" />
     <Compile Include="Misc\Data\DbDirectory.cs" />
     <Compile Include="Misc\Data\FFBaseCollection.cs" />
     <Compile Include="Misc\Data\FileOperationsService.cs" />

@@ -22,7 +22,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="30" />
         </Grid.RowDefinitions>
-        <TreeView Grid.Row="3" Grid.Column="0" ItemsSource="{Binding Path=MainViewData.TreeDataRoot.TreeData}">
+        <TreeView Grid.Row="3" Grid.Column="0" ItemsSource="{Binding Path=MainViewData.TreeDataRoot.TreeData}" TreeViewItem.Expanded="TreeView_Expanded">
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type misc2:TreeNodeItem}" ItemsSource="{Binding TreeData}">
                     <StackPanel Orientation="Horizontal" MouseDown="TreeItemClick">
@@ -37,22 +37,22 @@
                 </Style>
             </TreeView.ItemContainerStyle>
         </TreeView>
-        <ScrollViewer x:Name="MainScrollableArea" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"  Grid.Column="1" Grid.Row="3"  SizeChanged="GroupGrid_SizeChanged" MouseWheel="ScrollViewer_MouseWheel">
-            <ListView ItemsSource="{Binding Path=MainViewData.Groups}" Name="GroupsList" SelectionChanged="GroupsList_SelectionChanged" MouseWheel="ScrollViewer_MouseWheel">
+        <ScrollViewer x:Name="MainScrollableArea" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"  Grid.Column="1" Grid.Row="3"  SizeChanged="GroupGrid_SizeChanged" MouseWheel="ScrollViewer_MouseWheel" MouseDown="MainScrollableArea_MouseDown">
+            <ListView ItemsSource="{Binding Path=MainViewData.Groups}" Name="GroupsList" SelectionChanged="GroupsList_SelectionChanged" MouseWheel="ScrollViewer_MouseWheel" MouseDown="GroupsList_MouseDown">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Vertical" MouseWheel="ScrollViewer_MouseWheel">
-                            <TextBlock x:Name="GroupName" Text="{Binding Path=Key}" Margin="10" Background="Azure" MouseWheel="ScrollViewer_MouseWheel"></TextBlock>
-                            <ListView ItemsSource="{Binding Path=Value}" Name="ItemsList" SelectionChanged="ItemsList_SelectionChanged" MouseWheel="ScrollViewer_MouseWheel">
+                        <StackPanel x:Name="GroupParent" Orientation="Vertical" MouseWheel="ScrollViewer_MouseWheel">
+                            <TextBlock x:Name="GroupName" Text="{Binding Path=Key}" DataContext="{Binding Path=Value}" Margin="10" Background="Azure" MouseWheel="ScrollViewer_MouseWheel" MouseDown="GroupName_MouseDown"></TextBlock>
+                            <ListView ItemsSource="{Binding Path=Value}" Name="ItemsList" SelectionChanged="ItemsList_SelectionChanged" MouseWheel="ScrollViewer_MouseWheel"  MouseDown="GroupGrid_MouseDown">
                                 <ListView.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <UniformGrid x:Name="GroupGrid" VerticalAlignment="Top" HorizontalAlignment="Left" Columns="15" MouseWheel="ScrollViewer_MouseWheel"></UniformGrid>
+                                        <UniformGrid x:Name="GroupGrid" VerticalAlignment="Top" HorizontalAlignment="Left" Columns="15" MouseWheel="ScrollViewer_MouseWheel" MouseDown="GroupGrid_MouseDown"></UniformGrid>
                                     </ItemsPanelTemplate>
                                 </ListView.ItemsPanel>
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel HorizontalAlignment="Center" Margin="7"  Grid.Column="{Binding Path=X}" Grid.Row="{Binding Path=Y}"  MouseWheel="ScrollViewer_MouseWheel">
-                                            <Image x:Name="IconThumbnail" MouseDown="Icon_Click" Source="{Binding Path=Thumbnail, AsyncState=true}" Width="100" Height="100"></Image>
+                                            <Image x:Name="IconThumbnail" MouseDown="Icon_Click" Source="{Binding Path=Thumbnail, AsyncState=true}" Width="100" Height="100"/>
                                             <TextBlock x:Name="IconLabel" TextAlignment="Center" MouseDown="Icon_Click" Tag="{Binding Path=FullPath}" Text="{Binding Path=Name}" Width="100" Height="30" TextWrapping="Wrap" />
                                         </StackPanel>
                                     </DataTemplate>

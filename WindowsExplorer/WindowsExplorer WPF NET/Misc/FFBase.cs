@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Media.Imaging;
 using System.Timers;
+using System.Windows.Controls;
 using System.ComponentModel;
 using WindowsExplorer_WPF_NET.Misc.Data;
+using WindowsExplorer_WPF_NET.Controls;
+using System.Windows;
+using System.Collections.ObjectModel;
 
 namespace WindowsExplorer_WPF.Misc
 {
@@ -35,8 +39,8 @@ namespace WindowsExplorer_WPF.Misc
         public DateTime LastAccessed { get; set; }
         public DateTime Created { get; set; }
         public bool SupportsThumbnail { get; set; }
-
-        public void MouseDownAction(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        public Visibility MenuVisible { get; set; } = Visibility.Collapsed;
+        public void MouseDownAction(object sender, System.Windows.Input.MouseButtonEventArgs e, int X = 0, int Y = 0)
         {
             switch (e.ChangedButton)
             {
@@ -57,6 +61,10 @@ namespace WindowsExplorer_WPF.Misc
                 case System.Windows.Input.MouseButton.Middle:
                     break;
                 case System.Windows.Input.MouseButton.Right:
+                    var commandsMenu = new Commands_Menu();
+                    commandsMenu.Show();
+                    commandsMenu.Top = Y - commandsMenu.Height / 2;
+                    commandsMenu.Left = X - commandsMenu.Width / 2;
                     break;
                 case System.Windows.Input.MouseButton.XButton1:
                     break;
