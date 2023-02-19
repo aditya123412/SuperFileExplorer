@@ -9,7 +9,7 @@ using WindowsExplorer_WPF.Misc;
 
 namespace WindowsExplorer_WPF_NET.Misc
 {
-    public class TreeNodeItem : System.ComponentModel.INotifyPropertyChanged
+    public class TreeNodeItem : INotifyPropertyChanged
     {
         public string Caption { get; set; }
         public string FullPath { get; set; }

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Shapes;
 using WindowsExplorer_WPF_NET.Misc;
 using WindowsExplorer_WPF_NET.Misc.Data;
@@ -19,15 +20,14 @@ namespace WindowsExplorer_WPF.Misc
 {
     public class MainViewData : INotifyPropertyChanged
     {
-        private FileSystemWatcher _watcher;
-
+        //Main view variables
         public string Name { get; set; }
         public ObservableCollection<FFBase> MasterViewList { get; set; }
         public Dictionary<string, ObservableCollection<FFBase>> Groups { get; set; }
         public ObservableCollection<BreadCrumb> BreadCrumbs { get; set; }
-
-        public string TreeViewAddress { get; set; }
+        public ObservableCollection<GroupKeyValuePairs> SortedGroups { get; set; }
         public string MainViewAddress { get; set; }
+        public GroupSortBy GroupSortBy { get; set; }
         public IEnumerable<FFBase> MainViewSelected
         {
             get
@@ -36,8 +36,17 @@ namespace WindowsExplorer_WPF.Misc
             }
         }
 
+        // Treeview variables
+        public string TreeViewAddress { get; set; }
         public TreeNodeItem TreeDataRoot { get; set; } = new TreeNodeItem("", "");
+
+        //Misc
         public CancellationToken cancellationToken { get; set; }
+        public Func<FFBase, string> GroupNamesFunc { get; set; } = (FFBase ffbase) => "Main";
+        public Func<IEnumerable<FFBase>, IEnumerable<string>> SortGroupsByNameFunction { get; set; } = (IEnumerable<FFBase> fFBases) => new List<string> { "Main" };
+        public Func<IEnumerable<FFBase>, IEnumerable<FFBase>> SortItemsFunction { get; set; } = (IEnumerable<FFBase> FFBases) => FFBases;
+
+        //Methods
         public MainViewData(Action<int, int> Setup)
         {
             Setup(50, 15);
@@ -52,12 +61,11 @@ namespace WindowsExplorer_WPF.Misc
             if (!string.IsNullOrEmpty(path))
             {
                 Groups.Clear();
-                Groups = GetContextViewFromFileSystem(path);
+                //Groups = GetContextViewFromFileSystem(path);
+                GetContextViewFromFileSystem(path);
 
-                string[] breadcrumbs = path.Trim().Split(Path.DirectorySeparatorChar);
-                SetBreadCrumbs(breadcrumbs);
+                SetBreadCrumbs(path);
                 Task.Run(GetThumbNailsForActiveIcons, cancellationToken);
-                breadcrumbs[0] += Path.DirectorySeparatorChar;
                 SetTreeViewItems(path);
             }
             else
@@ -108,20 +116,22 @@ namespace WindowsExplorer_WPF.Misc
                 var bitmapSource = MainViewDataHelpers.Bitmap2BitmapImage(shellObject.Thumbnail.Bitmap);
                 TreeDataRoot.TreeData.Add(new TreeNodeItem(drive.Name, $"{drive.Name}", true, false) { Thumbnail = bitmapSource });
             }
+            MasterViewList = new ObservableCollection<FFBase>(items.ToList());
             Groups = new Dictionary<string, ObservableCollection<FFBase>> { { "My Computer", items } };
-            BreadCrumbs.Clear();
+
             Task.Run(GetThumbNailsForActiveIcons);
+            GetGroupBy(GroupNamesFunc, SortGroupsByNameFunction, SortItemsFunction);
+            BreadCrumbs.Clear();
         }
 
         public void SetTreeViewItems(string _path, bool isRegularFilePath = true, TreeNodeItem rootNode = null)
         {
             TreeViewAddress = _path;
-            var path = _path.Split(Path.DirectorySeparatorChar);
+            var items = _path.Split(Path.DirectorySeparatorChar).Where(x => !string.IsNullOrEmpty(x)).ToArray()
+                .Select(x => x.Replace(":", $":{Path.DirectorySeparatorChar}"));
 
             var searchPath = "";
-            TreeNodeItem currentNode = rootNode ?? TreeDataRoot;
-            var items = path.Where(x => !string.IsNullOrEmpty(x)).ToArray()
-                .Select(x => x.Replace(":", $":{Path.DirectorySeparatorChar}"));
+            TreeNodeItem currentNode = rootNode == null ? TreeDataRoot : rootNode;
 
             foreach (var item in items)
             {
@@ -160,7 +170,7 @@ namespace WindowsExplorer_WPF.Misc
                 items.Add(new FFBase() { Name = item.Name, FullPath = item.FullName, Type = Type.File, DoubleClickIcon = () => { Process.Start(item.FullName); }, SingleClickIcon = () => { } });
             }
             MasterViewList = new ObservableCollection<FFBase>(items.ToList());
-
+            GetGroupBy(GroupNamesFunc, SortGroupsByNameFunction, SortItemsFunction);
             return new Dictionary<string, ObservableCollection<FFBase>> { { "Main", items } };
         }
 
@@ -179,28 +189,77 @@ namespace WindowsExplorer_WPF.Misc
             //watcher.EnableRaisingEvents = true;
             return watcher;
         }
-        public void Sort(FieldName sortByField)
+
+        // Sort and group by
+        public void SortWithinGroup(FieldName sortByField)
         {
             foreach (var group in Groups)
             {
-                group.Value.Sort(Comparer<FFBase>.Create((f1, f2) => (int)f1[sortByField] - (int)f2[sortByField]));
+                group.Value.OrderBy(f => f[sortByField]);
             }
         }
 
         public void GroupBy(Func<FFBase, string> groupNameFunc,
-            Func<IEnumerable<string>, IEnumerable<string>> sortGroupsByNameFunction,
+            Func<IEnumerable<FFBase>, IEnumerable<string>> sortGroupsByNameFunction,
             Func<IEnumerable<FFBase>, IEnumerable<FFBase>> sortItemsFunction)
         {
-            var groupNames = sortGroupsByNameFunction(MasterViewList.Select((item) => groupNameFunc(item)).Distinct());
+            this.GroupNamesFunc = groupNameFunc;
+            this.SortGroupsByNameFunction = sortGroupsByNameFunction;
+            this.SortItemsFunction = sortItemsFunction;
+            GetGroupBy(groupNameFunc, sortGroupsByNameFunction, sortItemsFunction);
+        }
+        public void GetGroupBy(Func<FFBase, string> groupNameFunc,
+            Func<IEnumerable<FFBase>, IEnumerable<string>> sortGroupsByNameFunction,
+            Func<IEnumerable<FFBase>, IEnumerable<FFBase>> sortItemsFunction)
+        {
+            var groupNames = sortGroupsByNameFunction(MasterViewList);
 
-            var groups = new Dictionary<string, ObservableCollection<FFBase>>();
+            var tempGroups = new Dictionary<string, ObservableCollection<FFBase>>();
             foreach (var groupName in groupNames)
             {
-                groups.Add(groupName, new ObservableCollection<FFBase>(sortItemsFunction(MasterViewList
-                    .Where(ffbase => groupNameFunc(ffbase).Equals(groupName)))));
+                tempGroups.Add(groupName, new ObservableCollection<FFBase>(MasterViewList.Where(x => groupNameFunc(x).Equals(groupName))));
+            }
+            Groups = tempGroups;
+        }
+        public void SortGroupNames(Dictionary<string, ObservableCollection<FFBase>> groups, GroupSortBy groupSortBy, bool Desc = false)
+        {
+            var groupticles = groups.Keys.Select(v => (GroupName: v, GroupItems: groups[v]));
+            groups.Clear();
+            switch (groupSortBy)
+            {
+                case GroupSortBy.Name:
+                    groupticles = groupticles.OrderBy(x => x.GroupName);
+                    groupticles.ToList()
+                    .ForEach((x) => { groups.Add(x.GroupName, x.GroupItems); });
+                    break;
+                case GroupSortBy.Count:
+                    groupticles = groupticles.OrderBy(g => g.GroupItems.Count());
+                    groupticles.ToList()
+                        .ForEach((x) => { groups.Add(x.GroupName, x.GroupItems); });
+                    break;
+                case GroupSortBy.NewestItem:
+                    groupticles = groupticles.OrderBy(g => g.GroupItems.Max(n => n.Created));
+                    groupticles.ToList()
+                        .ForEach((x) => { groups.Add(x.GroupName, x.GroupItems); });
+                    break;
+                case GroupSortBy.OldestItem:
+                    groupticles = groupticles.OrderBy(g => g.GroupItems.Min(n => n.Created));
+                    groupticles.ToList()
+                        .ForEach((x) => { groups.Add(x.GroupName, x.GroupItems); });
+                    break;
+                case GroupSortBy.LastModified:
+                    groupticles = groupticles.OrderBy(g => g.GroupItems.Max(n => n.LastModified));
+                    groupticles.ToList()
+                        .ForEach((x) => { groups.Add(x.GroupName, x.GroupItems); });
+                    break;
+                case GroupSortBy.AsIs:
+                    break;
+                default:
+                    break;
             }
             Groups = groups;
         }
+
         public void GetThumbNailsForActiveIcons()
         {
             try
@@ -219,8 +278,9 @@ namespace WindowsExplorer_WPF.Misc
             {
             }
         }
-        public void SetBreadCrumbs(string[] breadCrumbs)
+        public void SetBreadCrumbs(string _path)
         {
+            var breadCrumbs = _path.Trim().Split(Path.DirectorySeparatorChar).Where(x => x.Length > 0).Select(x => x.Replace(":", $":{Path.DirectorySeparatorChar}"));
             var path = "";
             BreadCrumbs.Clear();
 
@@ -228,6 +288,7 @@ namespace WindowsExplorer_WPF.Misc
             {
                 path = Path.Combine(path, breadCrumb);
                 BreadCrumbs.Add(new BreadCrumb(breadCrumb, path));
+                BreadCrumbs.Add(new BreadCrumb($"{Path.DirectorySeparatorChar}", path));
             }
         }
 
@@ -251,6 +312,12 @@ namespace WindowsExplorer_WPF.Misc
         }
         public event PropertyChangedEventHandler PropertyChanged = (o, e) => { };
     }
+
+    public enum GroupSortBy
+    {
+        Name, Count, NewestItem, OldestItem, LastModified, TotalSize, AsIs
+    }
+
     public class BreadCrumb
     {
         public string Caption { get; set; }
@@ -271,6 +338,61 @@ namespace WindowsExplorer_WPF.Misc
         public string TreeViewAddress { get; set; }
         public string MainViewAddress { get; set; }
         public IEnumerable<FFBase> MainViewSelected { get; set; }
+        protected bool SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
+        {
+            if (!Equals(field, newValue))
+            {
+                field = newValue;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                return true;
+            }
+
+            return false;
+        }
+        public event PropertyChangedEventHandler PropertyChanged = (o, e) => { };
+    }
+
+    public class GroupKeyValuePairs : INotifyPropertyChanged
+    {
+        public string GroupName;
+        public List<FFBase> GroupItems;
+
+        public GroupKeyValuePairs(string groupName, List<FFBase> value)
+        {
+            GroupName = groupName;
+            GroupItems = value;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is GroupKeyValuePairs other &&
+                   GroupName == other.GroupName &&
+                   EqualityComparer<List<FFBase>>.Default.Equals(GroupItems, other.GroupItems);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = -1312193335;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(GroupName);
+            hashCode = hashCode * -1521134295 + EqualityComparer<List<FFBase>>.Default.GetHashCode(GroupItems);
+            return hashCode;
+        }
+
+        public void Deconstruct(out string groupName, out List<FFBase> value)
+        {
+            groupName = GroupName;
+            value = GroupItems;
+        }
+
+        public static implicit operator (string GroupName, List<FFBase> Value)(GroupKeyValuePairs value)
+        {
+            return (value.GroupName, value.GroupItems);
+        }
+
+        public static implicit operator GroupKeyValuePairs((string GroupName, List<FFBase> Value) value)
+        {
+            return new GroupKeyValuePairs(value.GroupName, value.Value);
+        }
         protected bool SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
         {
             if (!Equals(field, newValue))

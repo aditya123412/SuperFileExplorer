@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using WindowsExplorer_WPF_NET.Misc.Data;
+using System.Windows.Input;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -67,8 +69,8 @@ namespace WindowsExplorer_WPF
 
         private void BreadCrumbClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            var crumbAddresInTag = ((FrameworkElement)sender).Tag as string;
-            MainViewData.GetViewFromAddressString(crumbAddresInTag);
+            var crumbAddressInTag = ((FrameworkElement)sender).Tag as string;
+            MainViewData.GetViewFromAddressString(crumbAddressInTag);
         }
 
         private void Copy(object sender, RoutedEventArgs e)
@@ -131,22 +133,26 @@ namespace WindowsExplorer_WPF
 
         private void Delete(object sender, RoutedEventArgs e)
         {
-            foreach (var item in MainViewData.MainViewSelected)
+            var response = System.Windows.Forms.MessageBox.Show($"Do you want to delete the selcted ({MainViewData.MainViewSelected.Count()}) items?", "Delete items", System.Windows.Forms.MessageBoxButtons.YesNo);
+            if (response == System.Windows.Forms.DialogResult.Yes)
             {
-                switch (item.Type)
+                foreach (var item in MainViewData.MainViewSelected)
                 {
-                    case Misc.Type.File:
-                        System.IO.File.Delete(item.FullPath);
-                        break;
-                    case Misc.Type.Folder:
-                        System.IO.Directory.Delete(item.FullPath);
-                        break;
-                    case Misc.Type.Any:
-                        break;
-                    case Misc.Type.CustomScript:
-                        break;
-                    default:
-                        break;
+                    switch (item.Type)
+                    {
+                        case Misc.Type.File:
+                            System.IO.File.Delete(item.FullPath);
+                            break;
+                        case Misc.Type.Folder:
+                            System.IO.Directory.Delete(item.FullPath);
+                            break;
+                        case Misc.Type.Any:
+                            break;
+                        case Misc.Type.CustomScript:
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
             MainViewData.Refresh();
@@ -177,8 +183,15 @@ namespace WindowsExplorer_WPF
 
         private void GroupBy(object sender, RoutedEventArgs e)
         {
-            System.Func<FFBase, string> groupNameFunc = (FFBase ffbase) => ffbase.Type.ToString();
-            System.Func<IEnumerable<string>, IEnumerable<string>> sortGroupsByNameFunction = (IEnumerable<string> groupNames) => groupNames;
+            var sortByField = FieldName.Name;
+            var maxSubStringLength = 5;
+
+            System.Func<IEnumerable<FFBase>, IEnumerable<string>> sortGroupsByNameFunction = (IEnumerable<FFBase> groupNames) => groupNames.OrderBy(x => x[sortByField])
+            .Select(x => x[sortByField].ToString().Substring(0, System.Math.Min(maxSubStringLength, x[sortByField].ToString().Length - 1))).Distinct().Reverse();
+
+            System.Func<FFBase, string> groupNameFunc = (FFBase ffbase) => ffbase[sortByField].ToString()
+            .Substring(0, System.Math.Min(maxSubStringLength, ffbase[sortByField].ToString().Length - 1));
+
             System.Func<IEnumerable<FFBase>, IEnumerable<FFBase>> sortItemsFunction = (IEnumerable<FFBase> ffbases) => ffbases;
 
             MainViewData.GroupBy(groupNameFunc, sortGroupsByNameFunction, sortItemsFunction);
@@ -186,7 +199,7 @@ namespace WindowsExplorer_WPF
 
         private void SortBy(object sender, RoutedEventArgs e)
         {
-            MainViewData.Sort(WindowsExplorer_WPF_NET.Misc.Data.FieldName.Size);
+            MainViewData.SortWithinGroup(WindowsExplorer_WPF_NET.Misc.Data.FieldName.Size);
         }
 
         private void ResizeMainGridWidth(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -206,7 +219,7 @@ namespace WindowsExplorer_WPF
 
         UniformGrid GetAllGroupGrids()
         {
-            return FindChild<UniformGrid>(MainWindowGrid, "GroupGrid");
+            return WindowHelpers.FindChild<UniformGrid>(MainWindowGrid, "GroupGrid");
         }
 
         private void ScrollViewer_MouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
@@ -239,112 +252,6 @@ namespace WindowsExplorer_WPF
             }
         }
 
-        /// <summary>
-        /// Finds a Child of a given item in the visual tree. 
-        /// </summary>
-        /// <param name="parent">A direct parent of the queried item.</param>
-        /// <typeparam name="T">The type of the queried item.</typeparam>
-        /// <param name="childName">x:Name or Name of child. </param>
-        /// <returns>The first parent item that matches the submitted type parameter. 
-        /// If not matching item can be found, 
-        /// a null parent is being returned.</returns>
-        public static T FindChild<T>(DependencyObject parent, string childName)
-           where T : DependencyObject
-        {
-            // Confirm parent and childName are valid. 
-            if (parent == null) return null;
-
-            T foundChild = null;
-
-            int childrenCount = VisualTreeHelper.GetChildrenCount(parent);
-            for (int i = 0; i < childrenCount; i++)
-            {
-                var child = VisualTreeHelper.GetChild(parent, i);
-                // If the child is not of the request child type child
-                T childType = child as T;
-                if (childType == null)
-                {
-                    // recursively drill down the tree
-                    foundChild = FindChild<T>(child, childName);
-
-                    // If the child is found, break so we do not overwrite the found child. 
-                    if (foundChild != null) break;
-                }
-                else if (!string.IsNullOrEmpty(childName))
-                {
-                    var frameworkElement = child as FrameworkElement;
-                    // If the child's name is set for search
-                    if (frameworkElement != null && frameworkElement.Name == childName)
-                    {
-                        // if the child's name is of the request name
-                        foundChild = (T)child;
-                        break;
-                    }
-                }
-                else
-                {
-                    // child element found.
-                    foundChild = (T)child;
-                    break;
-                }
-            }
-
-            return foundChild;
-        }
-        public static T FindChildren<T>(DependencyObject parent, string childName)
-           where T : List<DependencyObject>
-        {
-            // Confirm parent and childName are valid. 
-            if (parent == null) return null;
-
-            var foundChildren = new List<DependencyObject>();
-
-            int childrenCount = VisualTreeHelper.GetChildrenCount(parent);
-            for (int i = 0; i < childrenCount; i++)
-            {
-                var child = VisualTreeHelper.GetChild(parent, i);
-                // If the child is not of the request child type child
-                T childType = child as T;
-                if (childType == null)
-                {
-                    // recursively drill down the tree
-                    var foundChilds = FindChildren<T>(child, childName);
-
-                    // If the child is found, add to the return collection
-                    foundChildren.AddRange(foundChilds);
-                }
-                else if (!string.IsNullOrEmpty(childName))
-                {
-                    var frameworkElement = child as FrameworkElement;
-                    // If the child's name is set for search
-                    if (frameworkElement != null && frameworkElement.Name == childName)
-                    {
-                        // if the child's name is of the request name
-                        foundChildren.Add(child);
-                    }
-                }
-            }
-
-            return (T)foundChildren;
-        }
-
-        public static T FindParent<T>(DependencyObject child, string parentName) where T : DependencyObject
-        {
-            if (child == null) return null;
-            FrameworkElement parent = VisualTreeHelper.GetParent(child) as FrameworkElement;
-            if (parent != null)
-            {
-                if (parent.Name.Equals(parentName))
-                {
-                    return parent as T;
-                }
-                else
-                {
-                    return FindParent<T>(parent, parentName);
-                }
-            }
-            return null;
-        }
         private void TreeView_Expanded(object sender, RoutedEventArgs e)
         {
             var treeNode = (TreeNodeItem)((TreeViewItem)e.OriginalSource).DataContext;
@@ -363,8 +270,8 @@ namespace WindowsExplorer_WPF
             var _sender = (TextBlock)sender;
             if (_sender != null)
             {
-                var parentList = FindParent<DependencyObject>(_sender, "GroupParent") as StackPanel;
-                var list = FindChild<DependencyObject>(parentList, "ItemsList") as ListView;
+                var parentList = WindowHelpers.FindParent<DependencyObject>(_sender, "GroupParent") as StackPanel;
+                var list = WindowHelpers.FindChild<DependencyObject>(parentList, "ItemsList") as ListView;
                 list.SelectAll();
             }
         }
@@ -381,7 +288,7 @@ namespace WindowsExplorer_WPF
         private void GroupsList_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             var _sender = (ListView)sender;
-            var list = FindChildren<List<DependencyObject>>(_sender, "ItemsList");
+            var list = WindowHelpers.FindChildren<List<DependencyObject>>(_sender, "ItemsList");
             foreach (var item in list)
             {
                 ((ListView)item).UnselectAll();
@@ -390,10 +297,52 @@ namespace WindowsExplorer_WPF
 
         private void MainScrollableArea_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            var lists = FindChildren<List<DependencyObject>>(MainScrollableArea, "ItemsList");
+            var lists = WindowHelpers.FindChildren<List<DependencyObject>>(MainScrollableArea, "ItemsList");
             foreach (var item in lists)
             {
                 ((ListView)item).UnselectAll();
+            }
+        }
+
+        private void CloseMainWindow(object sender, System.EventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        private void SortByTotalSize(object sender, RoutedEventArgs e)
+        {
+            MainViewData.SortGroupNames(MainViewData.Groups, GroupSortBy.TotalSize);
+        }
+
+        private void SortByGroupCount(object sender, RoutedEventArgs e)
+        {
+            MainViewData.SortGroupNames(MainViewData.Groups, GroupSortBy.Count);
+        }
+
+        private void SortByGroupLatestItem(object sender, RoutedEventArgs e)
+        {
+            MainViewData.SortGroupNames(MainViewData.Groups, GroupSortBy.NewestItem);
+        }
+
+        private void SortByGroupNames(object sender, RoutedEventArgs e)
+        {
+            MainViewData.SortGroupNames(MainViewData.Groups, GroupSortBy.Name);
+        }
+
+
+        private void MainViewArea_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.A && e.KeyboardDevice.Modifiers == ModifierKeys.Control)
+            {
+                var list = WindowHelpers.FindChildren<List<DependencyObject>>(MainScrollableArea, "ItemsList");
+                foreach (var item in list)
+                {
+                    ((ListView)item).SelectAll();
+                }
+            }
+            if (e.Key == Key.Back)
+            {
+
             }
         }
     }

@@ -61,10 +61,17 @@ namespace WindowsExplorer_WPF.Misc
                 case System.Windows.Input.MouseButton.Middle:
                     break;
                 case System.Windows.Input.MouseButton.Right:
-                    var commandsMenu = new Commands_Menu();
+                    var context = new CommandsMenuContext();
+                    var commandsMenu = new Commands_Menu(context);
                     commandsMenu.Show();
-                    commandsMenu.Top = Y - commandsMenu.Height / 2;
-                    commandsMenu.Left = X - commandsMenu.Width / 2;
+                    commandsMenu.CommandsMenuContext.AddCommand(new Command() { Name = "Delete" }, new string[] { });
+                    commandsMenu.CommandsMenuContext.AddCommand(new Command() { Name = "Delete" }, new string[] { "Edit", "Actions", "CActions", "RActions" });
+                    commandsMenu.CommandsMenuContext.AddCommand(new Command() { Name = "Delete" }, new string[] { "Edit", "Actions", "Jacksons", "FActions" });
+                    commandsMenu.CommandsMenuContext.AddCommand(new Command() { Name = "Delete" }, new string[] { "View", "Actions" });
+                    commandsMenu.CommandsMenuContext.AddCommand(new Command() { Name = "Delete" }, new string[] { "Selection", "Actions" });
+                    commandsMenu.CommandsMenuContext.AddCommand(new Command() { Name = "Delete" }, new string[] { "Bookmark", "Actions" });
+                    commandsMenu.Top = Y - commandsMenu.Height / 2 - 20;
+                    commandsMenu.Left = X - commandsMenu.Width / 2 - 20;
                     break;
                 case System.Windows.Input.MouseButton.XButton1:
                     break;
