@@ -32,8 +32,8 @@ namespace WindowsExplorer_WPF.Misc
         public bool IsFolder { get; set; }
         public bool HasThumbnail { get; set; }
         public bool Selected { get; set; }
-        public int X { get; set; }
-        public int Y { get; set; }
+        public int X { get; set; } = 0;
+        public int Y { get; set; } = 0;
 
         public DateTime LastModified { get; set; }
         public DateTime LastAccessed { get; set; }
@@ -143,6 +143,7 @@ namespace WindowsExplorer_WPF.Misc
                     case FieldName.LastAccessedBy:
                         break;
                     case FieldName.Type:
+                        return Type.ToString();
                         break;
                     default:
                         break;

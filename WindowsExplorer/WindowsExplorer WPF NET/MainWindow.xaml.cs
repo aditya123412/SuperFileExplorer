@@ -12,6 +12,7 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using WindowsExplorer_WPF.Misc;
 using WindowsExplorer_WPF_NET.Misc;
+using System.Windows.Data;
 
 namespace WindowsExplorer_WPF
 {
@@ -23,6 +24,8 @@ namespace WindowsExplorer_WPF
         Dictionary<string, ObservableCollection<FFBase>> Lists = new Dictionary<string, ObservableCollection<FFBase>>();
         private readonly string CLIPBOARD = "$CLIPBOARD";
 
+        public CollectionViewSource csv;
+
         public MainViewData MainViewData { get; set; }
         public int ColumnCount { get; set; } = 16;
 
@@ -30,9 +33,11 @@ namespace WindowsExplorer_WPF
         {
             //InitializeComponent();
             MainViewData = new MainViewData(CreateRowAndColumnDefinitions);
-
+            MainViewData.Rows = 6;
+            MainViewData.Columns = 15;
             this.DataContext = this;
             MainViewData.GetViewFromAddressString("");
+
         }
 
         public void CreateRowAndColumnDefinitions(int rows, int columns)
@@ -64,7 +69,7 @@ namespace WindowsExplorer_WPF
         private void HomeButton_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             MainViewData.GetViewFromAddressString("");
-            this.GroupsList.Focus();
+            GroupsList.Focus();
         }
 
         private void BreadCrumbClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -183,7 +188,7 @@ namespace WindowsExplorer_WPF
 
         private void GroupBy(object sender, RoutedEventArgs e)
         {
-            var sortByField = FieldName.Name;
+            var sortByField = FieldName.Type;
             var maxSubStringLength = 5;
 
             System.Func<IEnumerable<FFBase>, IEnumerable<string>> sortGroupsByNameFunction = (IEnumerable<FFBase> groupNames) => groupNames.OrderBy(x => x[sortByField])
@@ -344,6 +349,14 @@ namespace WindowsExplorer_WPF
             {
 
             }
+        }
+
+
+        private void NewGroupBy_Click(object sender, RoutedEventArgs e)
+        {
+            CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(GroupsList.ItemsSource);
+            PropertyGroupDescription groupDescription = new PropertyGroupDescription("Type");
+            view.GroupDescriptions.Add(groupDescription);
         }
     }
     class FFBaseEqualityComparer : IEqualityComparer<FFBase>

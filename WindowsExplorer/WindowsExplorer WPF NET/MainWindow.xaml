@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:misc2="clr-namespace:WindowsExplorer_WPF_NET.Misc"
-        xmlns:controls="Microsoft.Toolkit.Uwp.UI.Controls" 
+        xmlns:controls="System.Windows.Data" 
         xmlns:misc="clr-namespace:WindowsExplorer_WPF.Misc" 
         d:DataContext="{d:DesignInstance Type=misc:MainViewData}"
         mc:Ignorable="d"
@@ -42,7 +42,7 @@
         </TreeView>
         <!--<Main view area>-->
         <ScrollViewer x:Name="MainScrollableArea" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"  Grid.Column="1" Grid.Row="3"  SizeChanged="GroupGrid_SizeChanged" MouseWheel="ScrollViewer_MouseWheel" MouseDown="MainScrollableArea_MouseDown">
-            <ListView ItemsSource="{Binding Path=MainViewData.Groups}" Name="GroupsList" SelectionChanged="GroupsList_SelectionChanged" MouseWheel="ScrollViewer_MouseWheel" MouseDown="GroupsList_MouseDown" KeyDown="MainViewArea_KeyDown">
+            <!--<ListView ItemsSource="{Binding Path=MainViewData.Groups}" Name="GroupsList" SelectionChanged="GroupsList_SelectionChanged" MouseWheel="ScrollViewer_MouseWheel" MouseDown="GroupsList_MouseDown" KeyDown="MainViewArea_KeyDown">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <StackPanel x:Name="GroupParent" Orientation="Vertical" MouseWheel="ScrollViewer_MouseWheel" KeyDown="MainViewArea_KeyDown">
@@ -55,7 +55,7 @@
                                 </ListView.ItemsPanel>
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel HorizontalAlignment="Center" Margin="7"  Grid.Column="{Binding Path=X}" Grid.Row="{Binding Path=Y}"  MouseWheel="ScrollViewer_MouseWheel" KeyDown="MainViewArea_KeyDown">
+                                        <StackPanel HorizontalAlignment="Center" Margin="7" Grid.Column="{Binding Path=X}" Grid.Row="{Binding Path=Y}" MouseWheel="ScrollViewer_MouseWheel" KeyDown="MainViewArea_KeyDown">
                                             <StackPanel.Effect>
                                                 <DropShadowEffect/>
                                             </StackPanel.Effect>
@@ -68,6 +68,75 @@
                         </StackPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>
+            </ListView>-->
+            <ListView  Name="GroupsList" ItemsSource="{Binding Path=MainViewData.MasterViewList}">
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid x:Name="MainViewGrid">    
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                                <RowDefinition Height="*"></RowDefinition>
+                            </Grid.RowDefinitions>
+                        </Grid>
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel HorizontalAlignment="Center" Margin="7" MouseWheel="ScrollViewer_MouseWheel" KeyDown="MainViewArea_KeyDown">
+                            <StackPanel.Effect>
+                                <DropShadowEffect/>
+                            </StackPanel.Effect>
+                            <Image x:Name="IconThumbnail" MouseDown="Icon_Click" Source="{Binding Path=Thumbnail, AsyncState=true}" Width="100" Height="100" Stretch="Fill" KeyDown="MainViewArea_KeyDown"/>
+                            <TextBlock x:Name="IconLabel" TextAlignment="Center" MouseDown="Icon_Click" Tag="{Binding Path=FullPath}" Text="{Binding Path=Name}" Width="100" Height="30" TextWrapping="Wrap"  KeyDown="MainViewArea_KeyDown"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.ItemContainerStyle>
+                    <Style>
+                        <Setter Property="Grid.Row" Value="{Binding Path=Y}" />
+                        <Setter Property="Grid.Column" Value="{Binding Path=X}" />
+                    </Style>
+                </ListView.ItemContainerStyle>
             </ListView>
         </ScrollViewer>
 
@@ -186,6 +255,7 @@
                     </StackPanel>
                 </Button>
             </UniformGrid>
+            <!--<Button x:Name="NewGroupBy" Content="Group By new" Click="NewGroupBy_Click"></Button>-->
         </UniformGrid>
     </Grid>
 </Window>

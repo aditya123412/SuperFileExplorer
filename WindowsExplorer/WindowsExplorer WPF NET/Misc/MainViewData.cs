@@ -20,6 +20,7 @@ namespace WindowsExplorer_WPF.Misc
 {
     public class MainViewData : INotifyPropertyChanged
     {
+        private int rows, columns;
         //Main view variables
         public string Name { get; set; }
         public ObservableCollection<FFBase> MasterViewList { get; set; }
@@ -45,7 +46,25 @@ namespace WindowsExplorer_WPF.Misc
         public Func<FFBase, string> GroupNamesFunc { get; set; } = (FFBase ffbase) => "Main";
         public Func<IEnumerable<FFBase>, IEnumerable<string>> SortGroupsByNameFunction { get; set; } = (IEnumerable<FFBase> fFBases) => new List<string> { "Main" };
         public Func<IEnumerable<FFBase>, IEnumerable<FFBase>> SortItemsFunction { get; set; } = (IEnumerable<FFBase> FFBases) => FFBases;
+        public int Rows
+        {
+            get { return rows; }
+            set
+            {
+                rows = value;
+                ArrangeIcons(Rows, Columns);
+            }
+        }
+        public int Columns
+        {
+            get { return columns; }
+            set
+            {
+                columns = value;
+                ArrangeIcons(Rows, Columns);
 
+            }
+        }
         //Methods
         public MainViewData(Action<int, int> Setup)
         {
@@ -54,6 +73,35 @@ namespace WindowsExplorer_WPF.Misc
             BreadCrumbs = new ObservableCollection<BreadCrumb>();
         }
 
+        private void ArrangeIcons(int rows, int cols)
+        {
+            var tempList = new ObservableCollection<FFBase>();
+            int row = 0, col = 0;
+            foreach (var group in Groups)
+            {
+                col = 0;
+                foreach (var fFBase in group.Value)
+                {
+                    fFBase.X = col;
+                    fFBase.Y = row;
+                    tempList.Add(fFBase);
+                    if (col < cols - 1)
+                    {
+                        col++;
+                    }
+                    else
+                    {
+                        col = 0;
+                        if (row > rows - 1)
+                        {
+                        }
+                        row++;
+                    }
+                }
+                row++;
+            }
+            MasterViewList = tempList;
+        }
         public void GetViewFromAddressString(string path)
         {
             cancellationToken = new CancellationToken();
@@ -72,6 +120,7 @@ namespace WindowsExplorer_WPF.Misc
             {
                 ShowHomeInMainView();
             }
+            ArrangeIcons(Rows, Columns);
         }
         public void Refresh()
         {
@@ -103,14 +152,14 @@ namespace WindowsExplorer_WPF.Misc
             MasterViewList = new ObservableCollection<FFBase>(items.ToList());
             Groups = new Dictionary<string, ObservableCollection<FFBase>> { { "Main", items } };
         }
-
         private void ShowHomeInMainView()
         {
             var items = new ObservableCollection<FFBase>();
             TreeDataRoot.TreeData = new ObservableCollection<TreeNodeItem>();
+            int column = 0;
             foreach (var drive in DriveInfo.GetDrives())
             {
-                items.Add(new FFBase() { Name = drive.Name, FullPath = drive.Name, Type = Type.Folder, DoubleClickIcon = () => { GetViewFromAddressString(drive.Name); }, SingleClickIcon = () => { } });
+                items.Add(new FFBase() { Name = drive.Name, X = column++, FullPath = drive.Name, Type = Type.Folder, DoubleClickIcon = () => { GetViewFromAddressString(drive.Name); }, SingleClickIcon = () => { } });
 
                 ShellObject shellObject = ShellObject.FromParsingName(drive.Name);
                 var bitmapSource = MainViewDataHelpers.Bitmap2BitmapImage(shellObject.Thumbnail.Bitmap);
@@ -122,6 +171,23 @@ namespace WindowsExplorer_WPF.Misc
             Task.Run(GetThumbNailsForActiveIcons);
             GetGroupBy(GroupNamesFunc, SortGroupsByNameFunction, SortItemsFunction);
             BreadCrumbs.Clear();
+        }
+        public Dictionary<string, ObservableCollection<FFBase>> GetContextViewFromFileSystem(string path)
+        {
+            var di = new DirectoryInfo(path);
+            var items = new ObservableCollection<FFBase>();
+            int column = 0;
+            foreach (var item in di.GetDirectories())
+            {
+                items.Add(new FFBase() { Name = item.Name, X = column++, FullPath = item.FullName, Type = Type.Folder, DoubleClickIcon = () => { GetViewFromAddressString(item.FullName); }, SingleClickIcon = () => { } });
+            }
+            foreach (var item in di.GetFiles())
+            {
+                items.Add(new FFBase() { Name = item.Name, X = column++, FullPath = item.FullName, Type = Type.File, DoubleClickIcon = () => { Process.Start(item.FullName); }, SingleClickIcon = () => { } });
+            }
+            MasterViewList = new ObservableCollection<FFBase>(items.ToList());
+            GetGroupBy(GroupNamesFunc, SortGroupsByNameFunction, SortItemsFunction);
+            return new Dictionary<string, ObservableCollection<FFBase>> { { "Main", items } };
         }
 
         public void SetTreeViewItems(string _path, bool isRegularFilePath = true, TreeNodeItem rootNode = null)
@@ -155,23 +221,6 @@ namespace WindowsExplorer_WPF.Misc
                 currentNode.IsExpanded = true;
             }
 
-        }
-
-        public Dictionary<string, ObservableCollection<FFBase>> GetContextViewFromFileSystem(string path)
-        {
-            var di = new DirectoryInfo(path);
-            var items = new ObservableCollection<FFBase>();
-            foreach (var item in di.GetDirectories())
-            {
-                items.Add(new FFBase() { Name = item.Name, FullPath = item.FullName, Type = Type.Folder, DoubleClickIcon = () => { GetViewFromAddressString(item.FullName); }, SingleClickIcon = () => { } });
-            }
-            foreach (var item in di.GetFiles())
-            {
-                items.Add(new FFBase() { Name = item.Name, FullPath = item.FullName, Type = Type.File, DoubleClickIcon = () => { Process.Start(item.FullName); }, SingleClickIcon = () => { } });
-            }
-            MasterViewList = new ObservableCollection<FFBase>(items.ToList());
-            GetGroupBy(GroupNamesFunc, SortGroupsByNameFunction, SortItemsFunction);
-            return new Dictionary<string, ObservableCollection<FFBase>> { { "Main", items } };
         }
 
         private void fileSystemEventHandler(object sender, FileSystemEventArgs e)
@@ -220,6 +269,7 @@ namespace WindowsExplorer_WPF.Misc
                 tempGroups.Add(groupName, new ObservableCollection<FFBase>(MasterViewList.Where(x => groupNameFunc(x).Equals(groupName))));
             }
             Groups = tempGroups;
+            ArrangeIcons(Rows, Columns);
         }
         public void SortGroupNames(Dictionary<string, ObservableCollection<FFBase>> groups, GroupSortBy groupSortBy, bool Desc = false)
         {
