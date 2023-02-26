@@ -39,6 +39,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Jint, Version=0.0.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">
+      <HintPath>..\packages\Jint.2.11.58\lib\net451\Jint.dll</HintPath>
+    </Reference>
     <Reference Include="LibVLCSharp.Forms.Platforms.WPF, Version=3.6.7.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\LibVLCSharp.Forms.WPF.3.6.7\lib\net47\LibVLCSharp.Forms.Platforms.WPF.dll</HintPath>
     </Reference>
@@ -160,11 +163,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="Controls\Commands Menu.xaml">
+    <Page Include="Forms\Commands Menu.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\DynamicGrid.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\FloatingTree.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\InputWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -176,11 +187,17 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Controls\Commands Menu.xaml.cs">
+    <Compile Include="Forms\Commands Menu.xaml.cs">
       <DependentUpon>Commands Menu.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\DynamicGrid.xaml.cs">
       <DependentUpon>DynamicGrid.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\FloatingTree.xaml.cs">
+      <DependentUpon>FloatingTree.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\InputWindow.xaml.cs">
+      <DependentUpon>InputWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="FolderDatabase.cs" />
     <Compile Include="MainWindow.xaml.cs">
@@ -190,13 +207,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Misc\Actions\ActionFilters.cs" />
+    <Compile Include="Misc\Actions\KeyboardCombinationActions.cs" />
     <Compile Include="Misc\Actions\WindowHelpers.cs" />
     <Compile Include="Misc\Actions\IAction.cs" />
+    <Compile Include="Misc\Converters\DateTimeToDateConverter.cs" />
     <Compile Include="Misc\Data\CommandsMenuContext.cs" />
+    <Compile Include="Misc\Data\ContextBasicData.cs" />
     <Compile Include="Misc\Data\DbDirectory.cs" />
     <Compile Include="Misc\Data\FFBaseCollection.cs" />
-    <Compile Include="Misc\Data\FileOperationsService.cs" />
-    <Compile Include="Misc\Data\FileSystemPropertyFetcher.cs" />
+    <Compile Include="Misc\Converters\NormalizedFileSizeConverter.cs" />
+    <Compile Include="Misc\Helpers\FileOperationsHelper.cs" />
+    <Compile Include="Misc\Helpers\FileSystemPropertyFetcher.cs" />
     <Compile Include="Misc\Data\FolderTable.cs" />
     <Compile Include="Misc\Data\IPropertyQueryResultProvider.cs" />
     <Compile Include="Misc\Data\MemoryPropertyTree.cs" />
@@ -205,11 +226,39 @@
     <Compile Include="Misc\FFBase.cs" />
     <Compile Include="Misc\File.cs" />
     <Compile Include="Misc\Folder.cs" />
-    <Compile Include="Misc\MainViewData.cs" />
-    <Compile Include="Misc\MainViewDataBase.cs" />
-    <Compile Include="Misc\Actions\MainViewDataHelpers.cs" />
+    <Compile Include="Misc\Data\MainViewContext.cs" />
+    <Compile Include="Misc\Helpers\MainViewDataHelpers.cs" />
     <Compile Include="Misc\Actions\MiscOperations.cs" />
     <Compile Include="Misc\Actions\PropAttribute.cs" />
+    <Compile Include="Misc\Operations\BOOL.cs" />
+    <Compile Include="Misc\Operations\Common\Constants.cs" />
+    <Compile Include="Misc\Operations\Common\DataObject.cs" />
+    <Compile Include="Misc\Operations\Common\FileItem.cs" />
+    <Compile Include="Misc\Operations\Common\FileProperties.cs" />
+    <Compile Include="Misc\Operations\Common\FolderItem.cs" />
+    <Compile Include="Misc\Operations\Common\FolderProperties.cs" />
+    <Compile Include="Misc\Operations\Common\GlassHelper.cs" />
+    <Compile Include="Misc\Operations\Common\HelperFunctions.cs" />
+    <Compile Include="Misc\Operations\Common\IDescriptorNode.cs" />
+    <Compile Include="Misc\Operations\Common\OperationDescriptor.cs" />
+    <Compile Include="Misc\Operations\Common\OperationStack.cs" />
+    <Compile Include="Misc\Operations\Common\Serializer.cs" />
+    <Compile Include="Misc\Operations\Copy.cs" />
+    <Compile Include="Misc\Operations\DATE.cs" />
+    <Compile Include="Misc\Operations\Delete.cs" />
+    <Compile Include="Misc\Operations\IDescriptorMatcherExtensionMethods.cs" />
+    <Compile Include="Misc\Operations\Merge.cs" />
+    <Compile Include="Misc\Operations\Move.cs" />
+    <Compile Include="Misc\Operations\Number.cs" />
+    <Compile Include="Misc\Operations\OperationExecutor.cs" />
+    <Compile Include="Misc\Operations\OperationExpression.cs" />
+    <Compile Include="Misc\Operations\OperationImplementation.cs" />
+    <Compile Include="Misc\Operations\ProjectAll.cs" />
+    <Compile Include="Misc\Operations\Rename.cs" />
+    <Compile Include="Misc\Operations\STR.cs" />
+    <Compile Include="Misc\Operations\Strlist.cs" />
+    <Compile Include="Misc\Operations\SubString.cs" />
+    <Compile Include="Misc\PropertiesView.cs" />
     <Compile Include="Misc\TreeNodeItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

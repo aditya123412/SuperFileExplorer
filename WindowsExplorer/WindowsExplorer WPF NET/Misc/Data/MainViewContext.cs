@@ -10,25 +10,29 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Shapes;
+using WindowsExplorer_WPF.Misc.Helpers;
+using WindowsExplorer_WPF_NET.Controls;
 using WindowsExplorer_WPF_NET.Misc;
 using WindowsExplorer_WPF_NET.Misc.Data;
 using Path = System.IO.Path;
 
 namespace WindowsExplorer_WPF.Misc
 {
-    public class MainViewData : INotifyPropertyChanged
+    public class MainViewContext : INotifyPropertyChanged
     {
+        public static MainViewContext CommonInstance = null;
+        private static Dictionary<string, MainViewContext> Contexts = new Dictionary<string, MainViewContext>();
         private int rows, columns;
         //Main view variables
+        public List<string> ContextNames { get { return Contexts.Keys.ToList(); } }
         public string Name { get; set; }
         public ObservableCollection<FFBase> MasterViewList { get; set; }
         public Dictionary<string, ObservableCollection<FFBase>> Groups { get; set; }
         public ObservableCollection<BreadCrumb> BreadCrumbs { get; set; }
-        public ObservableCollection<GroupKeyValuePairs> SortedGroups { get; set; }
         public string MainViewAddress { get; set; }
-        public GroupSortBy GroupSortBy { get; set; }
         public IEnumerable<FFBase> MainViewSelected
         {
             get
@@ -52,6 +56,7 @@ namespace WindowsExplorer_WPF.Misc
             set
             {
                 rows = value;
+                ResizeGrid(rows, Columns);
                 ArrangeIcons(Rows, Columns);
             }
         }
@@ -61,22 +66,26 @@ namespace WindowsExplorer_WPF.Misc
             set
             {
                 columns = value;
+                ResizeGrid(Rows, columns);
                 ArrangeIcons(Rows, Columns);
-
             }
         }
+
+        public static Grid MainGrid { get; internal set; }
+
         //Methods
-        public MainViewData(Action<int, int> Setup)
+        public MainViewContext()
         {
-            Setup(50, 15);
             Groups = new Dictionary<string, ObservableCollection<FFBase>>() { };
             BreadCrumbs = new ObservableCollection<BreadCrumb>();
+            MainViewContext.CommonInstance = this;
+            Contexts.Add($"Main{Contexts.Count() + 1}", this);
         }
 
-        private void ArrangeIcons(int rows, int cols)
+        public void ArrangeIcons(int rows, int cols)
         {
             var tempList = new ObservableCollection<FFBase>();
-            int row = 0, col = 0;
+            int row = 0, col;
             foreach (var group in Groups)
             {
                 col = 0;
@@ -94,6 +103,7 @@ namespace WindowsExplorer_WPF.Misc
                         col = 0;
                         if (row > rows - 1)
                         {
+                            MainGrid.RowDefinitions.Add(new RowDefinition());
                         }
                         row++;
                     }
@@ -101,6 +111,21 @@ namespace WindowsExplorer_WPF.Misc
                 row++;
             }
             MasterViewList = tempList;
+        }
+        public void ResizeGrid(int rows, int cols)
+        {
+            if (MainGrid == null)
+                return;
+            MainGrid.ColumnDefinitions.Clear();
+            MainGrid.RowDefinitions.Clear();
+            for (int i = 0; i < rows; i++)
+            {
+                MainGrid.RowDefinitions.Add(new RowDefinition());
+            }
+            for (int i = 0; i < cols; i++)
+            {
+                MainGrid.ColumnDefinitions.Add(new ColumnDefinition());
+            }
         }
         public void GetViewFromAddressString(string path)
         {
@@ -140,8 +165,7 @@ namespace WindowsExplorer_WPF.Misc
                 var match = MasterViewList.FirstOrDefault(mvlItem => mvlItem.FullPath.Equals(item.FullPath, StringComparison.CurrentCultureIgnoreCase));
                 if (match == null)
                 {
-                    ShellObject shellObject = ShellObject.FromParsingName(item.FullPath);
-                    var bitmapSource = MainViewDataHelpers.Bitmap2BitmapImage(shellObject.Thumbnail.Bitmap);
+                    System.Windows.Media.Imaging.BitmapSource bitmapSource = WindowHelpers.GetBitmapSourceFromPath(item.FullPath);
                     item.Thumbnail = bitmapSource;
                 }
                 else
@@ -151,6 +175,7 @@ namespace WindowsExplorer_WPF.Misc
             }
             MasterViewList = new ObservableCollection<FFBase>(items.ToList());
             Groups = new Dictionary<string, ObservableCollection<FFBase>> { { "Main", items } };
+            ArrangeIcons(Rows, Columns);
         }
         private void ShowHomeInMainView()
         {
@@ -189,7 +214,6 @@ namespace WindowsExplorer_WPF.Misc
             GetGroupBy(GroupNamesFunc, SortGroupsByNameFunction, SortItemsFunction);
             return new Dictionary<string, ObservableCollection<FFBase>> { { "Main", items } };
         }
-
         public void SetTreeViewItems(string _path, bool isRegularFilePath = true, TreeNodeItem rootNode = null)
         {
             TreeViewAddress = _path;
@@ -222,21 +246,141 @@ namespace WindowsExplorer_WPF.Misc
             }
 
         }
-
-        private void fileSystemEventHandler(object sender, FileSystemEventArgs e)
+        public static MainViewContext GetMainViewData(string name)
         {
-            GetViewFromAddressString(e.FullPath);
+            return Contexts[name];
+        }
+        public static void AddNewMainViewData(string name)
+        {
+            var newContext = new MainViewContext();
+            newContext.Name = name;
+            newContext.rows = 6;
+            newContext.columns = 15;
+            newContext.GetViewFromAddressString("");
+            Contexts.Add(name, newContext);
+        }
+        public void MainViewSelectionChanged(List<FFBase> fFBases)
+        {
+            UpdatePropertiesBox();
+            UpdateContextMenuActions();
+        }
+        public void MainViewIconClicked(int X, int Y, System.Windows.Input.MouseButtonEventArgs e, FFBase ffbase = null, FrameworkElement control = null)
+        {
+            switch (e.ChangedButton)
+            {
+                case System.Windows.Input.MouseButton.Left:
+                    //SingleClickIcon();
+                    if (ffbase.isSecondClick)
+                    {
+                        ffbase.DoubleClickIcon();
+                        ffbase.isSecondClick = false;
+                        ffbase.timer.Stop();
+                    }
+                    else
+                    {
+                        ffbase.isSecondClick = true;
+                        ffbase.timer.Start();
+                    }
+                    break;
+                case System.Windows.Input.MouseButton.Middle:
+                    break;
+                case System.Windows.Input.MouseButton.Right:
+
+                    var context = new CommandsMenuContext();
+                    var commandsMenu = new Commands_Menu(context);
+                    commandsMenu.Show();
+                    ffbase.SetFFbaseActionsToMenuContext(commandsMenu.CommandsMenuContext);
+                    SetMenuContextActions(commandsMenu.CommandsMenuContext);
+                    commandsMenu.Top = Y - commandsMenu.Height / 2 - 20;
+                    commandsMenu.Left = X - commandsMenu.Width / 2 - 20;
+                    break;
+                case System.Windows.Input.MouseButton.XButton1:
+                    break;
+                case System.Windows.Input.MouseButton.XButton2:
+                    break;
+                default:
+                    break;
+            }
         }
 
-        private FileSystemWatcher watch(string path, FileSystemEventHandler OnChanged)
+        private void SetMenuContextActions(CommandsMenuContext commandsMenuContext)
         {
-            FileSystemWatcher watcher = new FileSystemWatcher();
-            //watcher.Path = path;
-            //watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Attributes | NotifyFilters.FileName;
-            //watcher.Filter = "*";
-            //watcher.Changed += new FileSystemEventHandler(OnChanged);
-            //watcher.EnableRaisingEvents = true;
-            return watcher;
+            commandsMenuContext.AddCommand(new Command()
+            {
+                Name = "Big Icons",
+                Action = (obj) =>
+                {
+                    MainViewContext.CommonInstance.Rows = 3;
+                    MainViewContext.CommonInstance.Columns = 10;
+                }
+            }, new string[] { "View" });
+            commandsMenuContext.AddCommand(new Command()
+            {
+                Name = "Small Icons",
+                Action = (obj) =>
+                {
+                    MainViewContext.CommonInstance.Rows = 6;
+                    MainViewContext.CommonInstance.Columns = 15;
+                }
+            }, new string[] { "View" });
+            commandsMenuContext.AddCommand(new Command()
+            {
+                Name = "Group By Name",
+                Action = (obj) =>
+                {
+                    CommonInstance.GroupBy((ffbase) => ffbase.Name.Substring(0, 1), (ffbases) => ffbases.Select(f => f.Name.Substring(0, 1)).Distinct(), CommonInstance.SortItemsFunction);
+                }
+            }, new string[] { "View", "Group By" });
+            commandsMenuContext.AddCommand(new Command()
+            {
+                Name = "Group By Type",
+                Action = (obj) =>
+                {
+                    CommonInstance.GroupBy((ffbase) => ffbase.Type.ToString(), (ffbases) => ffbases.Select(f => f.Type.ToString()).Distinct(), CommonInstance.SortItemsFunction);
+                }
+            }, new string[] { "View", "Group By" });
+            commandsMenuContext.AddCommand(new Command()
+            {
+                Name = "Sort By Name",
+                Action = (obj) =>
+                {
+                    CommonInstance.GroupBy(CommonInstance.GroupNamesFunc, CommonInstance.SortGroupsByNameFunction, (ffbases) => ffbases.OrderBy(x => x.Name));
+                }
+            }, new string[] { "View", "Sort By" });
+            commandsMenuContext.AddCommand(new Command()
+            {
+                Name = "Sort By Size",
+                Action = (obj) =>
+                {
+                    CommonInstance.GroupBy(CommonInstance.GroupNamesFunc, CommonInstance.SortGroupsByNameFunction, (ffbases) => ffbases.OrderBy(x => x.Size));
+                }
+            }, new string[] { "View", "Sort By" });
+            commandsMenuContext.AddCommand(new Command()
+            {
+                Name = "Sort By Created",
+                Action = (obj) =>
+                {
+                    CommonInstance.GroupBy(CommonInstance.GroupNamesFunc, CommonInstance.SortGroupsByNameFunction, (ffbases) => ffbases.OrderBy(x => x.Created));
+                }
+            }, new string[] { "View", "Sort By" });
+            commandsMenuContext.AddCommand(new Command()
+            {
+                Name = "Sort By Modified",
+                Action = (obj) =>
+                {
+                    CommonInstance.GroupBy(CommonInstance.GroupNamesFunc, CommonInstance.SortGroupsByNameFunction, (ffbases) => ffbases.OrderBy(x => x.LastModified));
+                }
+            }, new string[] { "View", "Sort By" });
+        }
+
+        private void UpdatePropertiesBox()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void UpdateContextMenuActions()
+        {
+            throw new NotImplementedException();
         }
 
         // Sort and group by
@@ -271,10 +415,10 @@ namespace WindowsExplorer_WPF.Misc
             Groups = tempGroups;
             ArrangeIcons(Rows, Columns);
         }
-        public void SortGroupNames(Dictionary<string, ObservableCollection<FFBase>> groups, GroupSortBy groupSortBy, bool Desc = false)
+        public void SortGroupNames(GroupSortBy groupSortBy, bool Desc = false)
         {
-            var groupticles = groups.Keys.Select(v => (GroupName: v, GroupItems: groups[v]));
-            groups.Clear();
+            var groupticles = Groups.Keys.Select(v => (GroupName: v, GroupItems: Groups[v]));
+            Dictionary<string, ObservableCollection<FFBase>> groups = new Dictionary<string, ObservableCollection<FFBase>>();
             switch (groupSortBy)
             {
                 case GroupSortBy.Name:
@@ -308,6 +452,7 @@ namespace WindowsExplorer_WPF.Misc
                     break;
             }
             Groups = groups;
+            ArrangeIcons(Rows, Columns);
         }
 
         public void GetThumbNailsForActiveIcons()
@@ -378,82 +523,5 @@ namespace WindowsExplorer_WPF.Misc
             Caption = caption;
             FullPath = fullPath;
         }
-    }
-    public class ViewData : INotifyPropertyChanged
-    {
-        public string Name { get; set; }
-        public ObservableCollection<FFBase> MasterViewList { get; set; }
-        public Dictionary<string, ObservableCollection<FFBase>> Groups { get; set; }
-        public ObservableCollection<BreadCrumb> BreadCrumbs { get; set; }
-        public string TreeViewAddress { get; set; }
-        public string MainViewAddress { get; set; }
-        public IEnumerable<FFBase> MainViewSelected { get; set; }
-        protected bool SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
-        {
-            if (!Equals(field, newValue))
-            {
-                field = newValue;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                return true;
-            }
-
-            return false;
-        }
-        public event PropertyChangedEventHandler PropertyChanged = (o, e) => { };
-    }
-
-    public class GroupKeyValuePairs : INotifyPropertyChanged
-    {
-        public string GroupName;
-        public List<FFBase> GroupItems;
-
-        public GroupKeyValuePairs(string groupName, List<FFBase> value)
-        {
-            GroupName = groupName;
-            GroupItems = value;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is GroupKeyValuePairs other &&
-                   GroupName == other.GroupName &&
-                   EqualityComparer<List<FFBase>>.Default.Equals(GroupItems, other.GroupItems);
-        }
-
-        public override int GetHashCode()
-        {
-            int hashCode = -1312193335;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(GroupName);
-            hashCode = hashCode * -1521134295 + EqualityComparer<List<FFBase>>.Default.GetHashCode(GroupItems);
-            return hashCode;
-        }
-
-        public void Deconstruct(out string groupName, out List<FFBase> value)
-        {
-            groupName = GroupName;
-            value = GroupItems;
-        }
-
-        public static implicit operator (string GroupName, List<FFBase> Value)(GroupKeyValuePairs value)
-        {
-            return (value.GroupName, value.GroupItems);
-        }
-
-        public static implicit operator GroupKeyValuePairs((string GroupName, List<FFBase> Value) value)
-        {
-            return new GroupKeyValuePairs(value.GroupName, value.Value);
-        }
-        protected bool SetProperty<T>(ref T field, T newValue, [CallerMemberName] string propertyName = null)
-        {
-            if (!Equals(field, newValue))
-            {
-                field = newValue;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                return true;
-            }
-
-            return false;
-        }
-        public event PropertyChangedEventHandler PropertyChanged = (o, e) => { };
     }
 }

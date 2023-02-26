@@ -1,42 +1,47 @@
-﻿<Window x:Class="WindowsExplorer_WPF.MainWindow"
+﻿<Window
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:misc2="clr-namespace:WindowsExplorer_WPF_NET.Misc"
         xmlns:controls="System.Windows.Data" 
+        xmlns:conv="WindowsExplorer_WPF_NET.Misc.Converters"
         xmlns:misc="clr-namespace:WindowsExplorer_WPF.Misc" 
-        d:DataContext="{d:DesignInstance Type=misc:MainViewData}"
+        xmlns:Converters="clr-namespace:WindowsExplorer_WPF_NET.Misc.Converters" x:Class="WindowsExplorer_WPF.MainWindow" 
+        d:DataContext="{d:DesignInstance Type={x:Type misc:MainViewContext}}"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" WindowState="Maximized"
-        Name="MainWindow1"
+        x:Name="MainWindow1"
         Closed="CloseMainWindow">
+    <Window.Resources>
+        <Converters:DateTimeToDateConverter x:Key="DateTimeToDateConverter"/>
+    </Window.Resources>
     <Grid x:Name="MainWindowGrid">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300" x:Name="LeftPane"></ColumnDefinition>
-            <ColumnDefinition Width="*" x:Name="Middle"></ColumnDefinition>
-            <ColumnDefinition Width="300" x:Name="RightPane"></ColumnDefinition>
+            <ColumnDefinition Width="300" x:Name="LeftPane"/>
+            <ColumnDefinition Width="*" x:Name="Middle"/>
+            <ColumnDefinition Width="300" x:Name="RightPane"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="30" />
             <RowDefinition Height="60" />
-            <RowDefinition Height="30" />
+            <RowDefinition Height="60" />
             <RowDefinition Height="*" />
             <RowDefinition Height="30" />
         </Grid.RowDefinitions>
         <!--<Tree view>-->
-        <TreeView Grid.Row="3" Grid.Column="0" ItemsSource="{Binding Path=MainViewData.TreeDataRoot.TreeData}" TreeViewItem.Expanded="TreeView_Expanded">
+        <TreeView Grid.Row="3" Grid.Column="0" ItemsSource="{Binding MainViewData.TreeDataRoot.TreeData}" TreeViewItem.Expanded="TreeView_Expanded" Loaded="TreeView_Loaded">
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type misc2:TreeNodeItem}" ItemsSource="{Binding TreeData}">
                     <StackPanel Orientation="Horizontal" MouseDown="TreeItemClick">
-                        <Image Source="{Binding Path=Thumbnail, AsyncState=true}" Width="13" Height="13"></Image>
-                        <TextBlock Text="{Binding Path=Caption}"></TextBlock>
+                        <Image Source="{Binding Thumbnail, AsyncState=true}" Width="13" Height="13"/>
+                        <TextBlock Text="{Binding Caption}"/>
                     </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
             <TreeView.ItemContainerStyle>
                 <Style TargetType="{x:Type TreeViewItem}">
-                    <Setter Property="IsExpanded" Value="{Binding Path=IsExpanded}" />
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
                 </Style>
             </TreeView.ItemContainerStyle>
         </TreeView>
@@ -69,193 +74,177 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>-->
-            <ListView  Name="GroupsList" ItemsSource="{Binding Path=MainViewData.MasterViewList}">
+            <ListView  x:Name="GroupsList" ItemsSource="{Binding MainViewData.MasterViewList}" KeyDown="MainViewArea_KeyDown">
                 <ListView.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <Grid x:Name="MainViewGrid">    
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                                <RowDefinition Height="*"></RowDefinition>
-                            </Grid.RowDefinitions>
-                        </Grid>
+                        <Grid x:Name="MainViewGrid" Loaded="MainViewGrid_Loaded" KeyDown="MainViewArea_KeyDown" MouseDown="GroupGrid_MouseDown"/>
                     </ItemsPanelTemplate>
                 </ListView.ItemsPanel>
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel HorizontalAlignment="Center" Margin="7" MouseWheel="ScrollViewer_MouseWheel" KeyDown="MainViewArea_KeyDown">
-                            <StackPanel.Effect>
+                        <StackPanel HorizontalAlignment="Center" Margin="17" MouseWheel="ScrollViewer_MouseWheel" KeyDown="MainViewArea_KeyDown">
+                            <!--<StackPanel.Effect>
                                 <DropShadowEffect/>
-                            </StackPanel.Effect>
-                            <Image x:Name="IconThumbnail" MouseDown="Icon_Click" Source="{Binding Path=Thumbnail, AsyncState=true}" Width="100" Height="100" Stretch="Fill" KeyDown="MainViewArea_KeyDown"/>
-                            <TextBlock x:Name="IconLabel" TextAlignment="Center" MouseDown="Icon_Click" Tag="{Binding Path=FullPath}" Text="{Binding Path=Name}" Width="100" Height="30" TextWrapping="Wrap"  KeyDown="MainViewArea_KeyDown"/>
+                            </StackPanel.Effect>-->
+                            <Image x:Name="IconThumbnail" MouseDown="Icon_Click" Source="{Binding Thumbnail, AsyncState=true}" Width="100" Height="100" Stretch="Fill" KeyDown="MainViewArea_KeyDown"/>
+                            <TextBlock x:Name="IconLabel" TextAlignment="Center" MouseDown="Icon_Click" Tag="{Binding FullPath}" Text="{Binding Name}" Width="100" Height="30" TextWrapping="Wrap"  KeyDown="MainViewArea_KeyDown"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Size}" FontSize="9" FontWeight="Normal"/>
+                                <TextBlock Text="{Binding Created, Converter={StaticResource DateTimeToDateConverter}}" FontSize="9" TextAlignment="Right"/>
+                            </StackPanel>
                         </StackPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>
                 <ListView.ItemContainerStyle>
                     <Style>
-                        <Setter Property="Grid.Row" Value="{Binding Path=Y}" />
-                        <Setter Property="Grid.Column" Value="{Binding Path=X}" />
+                        <Setter Property="Grid.Row" Value="{Binding Y}" />
+                        <Setter Property="Grid.Column" Value="{Binding X}" />
                     </Style>
                 </ListView.ItemContainerStyle>
             </ListView>
         </ScrollViewer>
 
         <!--<Address bar and Breadcrumbs>-->
-        <StackPanel x:Name="AddressBarContainer" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal">
-            <StackPanel.Background>
-                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                    <GradientStop Color="#FF38A71A" Offset="0.866"/>
-                    <GradientStop Color="#FF9AECB5"/>
-                </LinearGradientBrush>
-            </StackPanel.Background>
-            <TextBlock  TextAlignment="Center" MouseDown="HomeButton_MouseLeftButtonDown" FontWeight="Bold" Width="58" Height="22" VerticalAlignment="Center" FontSize="13" Margin="8,0,0,0">
-                Home
-            </TextBlock>
-            <ListView ItemsSource="{Binding Path=MainViewData.BreadCrumbs}" BorderThickness="0,0,0,0" SnapsToDevicePixels="True">
-                <ListView.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <StackPanel.Background>
-                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                    <GradientStop Color="#FF38A71A" Offset="0.866"/>
-                                    <GradientStop Color="#FF9AECDF"/>
-                                </LinearGradientBrush>
-                            </StackPanel.Background>
-                        </StackPanel>
-                    </ItemsPanelTemplate>
-                </ListView.ItemsPanel>
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Path=Caption}" MouseDown="BreadCrumbClick" FontSize="13" FontWeight="DemiBold" Tag="{Binding Path=FullPath}" Margin="-5,0,-5,0" Background="#00000000"/>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+        <StackPanel Orientation="Vertical" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3">
+            <StackPanel Orientation="Horizontal">
+                <ListView ItemsSource="{Binding MainViewData.ContextNames}">
+                    <ListView.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"></StackPanel>
+                        </ItemsPanelTemplate>
+                    </ListView.ItemsPanel>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock MouseDown="ContextName_MouseDown" Text="{Binding}"></TextBlock>
+                                <Button Content="X"></Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                <TextBlock Text="+" MouseDown="AddNewContextClick"></TextBlock>
+            </StackPanel>
+            <StackPanel x:Name="AddressBarContainer" Orientation="Horizontal">
+                <StackPanel.Background>
+                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                        <GradientStop Color="#FF38A71A" Offset="0.866"/>
+                        <GradientStop Color="#FF9AECB5"/>
+                    </LinearGradientBrush>
+                </StackPanel.Background>
+                <TextBlock  TextAlignment="Center" MouseDown="HomeButton_MouseLeftButtonDown" FontWeight="Bold" Width="58" Height="22" VerticalAlignment="Center" FontSize="13" Margin="8,0,0,0"><Run Text="Home"/></TextBlock>
+                <ListView ItemsSource="{Binding MainViewData.BreadCrumbs}" BorderThickness="0,0,0,0" SnapsToDevicePixels="True">
+                    <ListView.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel.Background>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="#FF38A71A" Offset="0.866"/>
+                                        <GradientStop Color="#FF9AECDF"/>
+                                    </LinearGradientBrush>
+                                </StackPanel.Background>
+                            </StackPanel>
+                        </ItemsPanelTemplate>
+                    </ListView.ItemsPanel>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Caption}" MouseDown="BreadCrumbClick" FontSize="13" FontWeight="DemiBold" Tag="{Binding FullPath}" Margin="-5,0,-5,0" Background="#00000000"/>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackPanel>
         </StackPanel>
-        <StatusBar Grid.Row="4" Grid.ColumnSpan="3" Grid.Column="0"></StatusBar>
+        <StatusBar Grid.Row="4" Grid.ColumnSpan="3" Grid.Column="0"/>
         <!--<Top Toolbar>-->
         <UniformGrid Rows="1" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" HorizontalAlignment="Left">
             <UniformGrid Rows="2" Columns="2" Margin="3 3 8 3">
                 <Button Width="80" Margin="1" Click="Copy">
                     <StackPanel Orientation="Horizontal">
-                        <Image></Image>
-                        <TextBlock>Copy to</TextBlock>
+                        <Image/>
+                        <TextBlock><Run Text="Copy to"/></TextBlock>
                     </StackPanel>
                 </Button>
                 <Button Width="80" Margin="1" Click="Paste">
                     <StackPanel Orientation="Horizontal">
-                        <Image></Image>
-                        <TextBlock>Paste</TextBlock>
+                        <Image/>
+                        <TextBlock><Run Text="Paste"/></TextBlock>
                     </StackPanel>
                 </Button>
                 <Button Width="80" Margin="1" Click="Rename">
                     <StackPanel Orientation="Horizontal">
-                        <Image></Image>
-                        <TextBlock>Rename</TextBlock>
+                        <Image/>
+                        <TextBlock><Run Text="Rename"/></TextBlock>
                     </StackPanel>
                 </Button>
                 <Button Width="80" Margin="1" Click="Delete">
                     <StackPanel Orientation="Horizontal">
-                        <Image></Image>
-                        <TextBlock>Delete</TextBlock>
+                        <Image/>
+                        <TextBlock><Run Text="Delete"/></TextBlock>
                     </StackPanel>
                 </Button>
             </UniformGrid>
             <UniformGrid Rows="2" Columns="2" Margin="3 3 8 3">
                 <Button Width="80" Margin="1" Click="SortBy">
                     <StackPanel Orientation="Horizontal">
-                        <Image></Image>
-                        <TextBlock>Sort By</TextBlock>
+                        <Image/>
+                        <TextBlock><Run Text="Sort By"/></TextBlock>
                     </StackPanel>
                 </Button>
                 <Button Width="80" Margin="1" Click="GroupBy">
                     <StackPanel Orientation="Horizontal">
-                        <Image></Image>
-                        <TextBlock>Group By</TextBlock>
+                        <Image/>
+                        <TextBlock><Run Text="Group By"/></TextBlock>
                     </StackPanel>
                 </Button>
                 <Button Width="80" Margin="1" Click="Rename">
                     <StackPanel Orientation="Horizontal">
-                        <Image></Image>
-                        <TextBlock>Filter</TextBlock>
+                        <Image/>
+                        <TextBlock><Run Text="Filter"/></TextBlock>
                     </StackPanel>
                 </Button>
                 <Button Width="80" Margin="1" Click="Delete">
                     <StackPanel Orientation="Horizontal">
-                        <Image></Image>
-                        <TextBlock>Custom</TextBlock>
+                        <Image/>
+                        <TextBlock><Run Text="Custom"/></TextBlock>
                     </StackPanel>
                 </Button>
             </UniformGrid>
             <UniformGrid Rows="2" >
-                <Slider x:Name="IconSizeSlider" Minimum="10" Maximum="40" ValueChanged="ResizeMainGridWidth"></Slider>
+                <Slider x:Name="IconSizeSlider" Minimum="10" Maximum="40" ValueChanged="ResizeMainGridWidth"/>
             </UniformGrid>
             <UniformGrid Rows="2" Columns="2" Margin="3 3 8 3">
                 <Button Width="80" Margin="1" Click="SortByGroupNames">
                     <StackPanel Orientation="Horizontal">
-                        <Image></Image>
-                        <TextBlock>Names</TextBlock>
+                        <Image/>
+                        <TextBlock><Run Text="Names"/></TextBlock>
                     </StackPanel>
                 </Button>
                 <Button Width="80" Margin="1" Click="SortByGroupLatestItem">
                     <StackPanel Orientation="Horizontal">
-                        <Image></Image>
-                        <TextBlock>Latest Item</TextBlock>
+                        <Image/>
+                        <TextBlock><Run Text="Latest Item"/></TextBlock>
                     </StackPanel>
                 </Button>
                 <Button Width="80" Margin="1" Click="SortByGroupCount">
                     <StackPanel Orientation="Horizontal">
-                        <Image></Image>
-                        <TextBlock>Group Count</TextBlock>
+                        <Image/>
+                        <TextBlock><Run Text="Group Count"/></TextBlock>
                     </StackPanel>
                 </Button>
                 <Button Width="80" Margin="1" Click="SortByTotalSize">
                     <StackPanel Orientation="Horizontal">
-                        <Image></Image>
-                        <TextBlock>Total Size</TextBlock>
+                        <Image/>
+                        <TextBlock><Run Text="Total Size"/></TextBlock>
                     </StackPanel>
                 </Button>
             </UniformGrid>
             <!--<Button x:Name="NewGroupBy" Content="Group By new" Click="NewGroupBy_Click"></Button>-->
         </UniformGrid>
+        <StackPanel Orientation="Vertical" x:Name="PropertiesBox" Grid.Row="3" Grid.Column="2">
+            <ListBox x:Name="SelectedItemsThumbnails"/>
+            <TextBlock x:Name="NumberOfSelectedItems"/>
+            <TextBlock x:Name="TotalSizeOfSelectedItems"/>
+            <TextBlock x:Name="Tags"/>
+            <ListBox x:Name="ContextActions"/>
+        </StackPanel>
     </Grid>
 </Window>

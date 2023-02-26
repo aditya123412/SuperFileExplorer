@@ -4,13 +4,15 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 
-namespace WindowsExplorer_WPF.Misc
+namespace WindowsExplorer_WPF.Misc.Helpers
 {
     internal static class MainViewDataHelpers
     {
-        public static BitmapSource Bitmap2BitmapImage(Bitmap bitmap)
+        public static BitmapSource Bitmap2BitmapImage(Bitmap bitmap, bool MakeTransparent = true)
         {
-            bitmap.MakeTransparent();
+            if (MakeTransparent == true)
+                bitmap.MakeTransparent();
+
             IntPtr hBitmap = bitmap.GetHbitmap();
             BitmapSource retval;
 

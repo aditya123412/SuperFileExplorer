@@ -40,7 +40,7 @@ namespace WindowsExplorer_WPF_NET.Controls
             set
             {
                 this.childWindow = value;
-                if (value!=null)
+                if (value != null)
                 {
                     childWindow.Parent = this;
                 }
@@ -102,7 +102,14 @@ namespace WindowsExplorer_WPF_NET.Controls
         private void CloseMenu(object sender, MouseEventArgs e)
         {
             if (!Locked)
-                Close();
+            {
+                CloseMenu();
+            }
+        }
+        public void CloseMenu()
+        {
+            ChildWindow?.CloseMenu();
+            Close();
         }
 
         private void ItemHover(object _sender, MouseEventArgs e)
@@ -116,9 +123,9 @@ namespace WindowsExplorer_WPF_NET.Controls
                 var opGroups = sender.DataContext as OpGroups;
                 if (ChildWindow != null && !ChildWindow.CommandsMenuContext.OpGroups.Equals(opGroups))
                 {
-                    ChildWindow.Close();
+                    ChildWindow.CloseMenu();
                 }
-                else if (ChildWindow != null && ChildWindow.CommandsMenuContext.OpGroups.Equals(opGroups) || opGroups.IsEmpty)
+                else if ((ChildWindow != null && ChildWindow.CommandsMenuContext.OpGroups.Equals(opGroups)) || opGroups.IsEmpty)
                 {
                     return;
                 }
@@ -129,10 +136,21 @@ namespace WindowsExplorer_WPF_NET.Controls
                 this.ChildWindow.Top = point.Y;
             }
         }
-        private void CollapseMenus(OpGroups except)
+
+        private void CommandItem_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            CommandsMenuContext.OpGroups.CollapseAll(except);
-            CommandsMenuContext.OpGroups.IsExpanded = true;
+            var control = sender as TextBlock;
+            var commandAction = control.DataContext as Command;
+            commandAction.Action(commandAction.Parameters);
+            if (true)
+            {
+                this.CloseAllParents();
+            }
+        }
+        private void CloseAllParents()
+        {
+            this.Parent.Close();
+            this.Close();
         }
     }
 }

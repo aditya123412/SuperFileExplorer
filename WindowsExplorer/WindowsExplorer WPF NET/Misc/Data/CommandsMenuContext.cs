@@ -6,6 +6,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
+using WindowsExplorer_WPF_NET.Misc.Actions;
 
 namespace WindowsExplorer_WPF_NET.Misc.Data
 {
@@ -30,13 +32,17 @@ namespace WindowsExplorer_WPF_NET.Misc.Data
         }
     }
 
-    public class Command
+    public class Command : IAction
     {
-        public string Name { get; set; }
+        public Action<Dictionary<string, object>> Action { get; set; }
+        public Dictionary<string, object> Parameters { get; set; }
+        public BitmapSource ActionIcon { get; set; }
     }
     public class OpGroups : INotifyPropertyChanged
     {
         public string OpGroupName { get; set; }
+        public BitmapSource DefaultIcon { get; set; }
+
         public bool IsExpanded { get; set; } = true;
         public bool IsEmpty
         {
@@ -52,6 +58,13 @@ namespace WindowsExplorer_WPF_NET.Misc.Data
             this.OpGroupName = name;
             SubGroups = new ObservableCollection<OpGroups>();
             Commands = new ObservableCollection<Command>();
+        }
+        public OpGroups(string name, string imagePath)
+        {
+            this.OpGroupName = name;
+            SubGroups = new ObservableCollection<OpGroups>();
+            Commands = new ObservableCollection<Command>();
+            DefaultIcon = WindowsExplorer_WPF.WindowHelpers.GetBitmapSourceFromPath(imagePath);
         }
 
         public void Add(Command command, IEnumerable<string> path)

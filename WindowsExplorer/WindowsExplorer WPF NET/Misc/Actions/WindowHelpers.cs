@@ -4,10 +4,13 @@ using System.Windows.Media;
 using System.Windows.Controls;
 using System.Linq;
 using System;
+using Microsoft.WindowsAPICodePack.Shell;
+using WindowsExplorer_WPF.Misc;
+using WindowsExplorer_WPF.Misc.Helpers;
 
 namespace WindowsExplorer_WPF
 {
-    internal static class WindowHelpers
+    public static class WindowHelpers
     {
 
         /// <summary>
@@ -129,6 +132,12 @@ namespace WindowsExplorer_WPF
                     AssignEventHandlersToAllChildNodes(ithChild, assignPropsAndEvents, depth--);
                 }
             }
+        }
+        public static System.Windows.Media.Imaging.BitmapSource GetBitmapSourceFromPath(string path)
+        {
+            ShellObject shellObject = ShellObject.FromParsingName(path);
+            var bitmapSource = MainViewDataHelpers.Bitmap2BitmapImage(shellObject.Thumbnail.Bitmap);
+            return bitmapSource;
         }
     }
 }

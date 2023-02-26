@@ -13,6 +13,8 @@ using System.Windows.Media;
 using WindowsExplorer_WPF.Misc;
 using WindowsExplorer_WPF_NET.Misc;
 using System.Windows.Data;
+using WindowsExplorer_WPF_NET.Controls;
+using System;
 
 namespace WindowsExplorer_WPF
 {
@@ -26,44 +28,19 @@ namespace WindowsExplorer_WPF
 
         public CollectionViewSource csv;
 
-        public MainViewData MainViewData { get; set; }
+        public MainViewContext MainViewData { get; set; }
         public int ColumnCount { get; set; } = 16;
+        public TreeView SideTreeView { get; private set; }
 
         public MainWindow()
         {
             //InitializeComponent();
-            MainViewData = new MainViewData(CreateRowAndColumnDefinitions);
+            MainViewData = new MainViewContext();
             MainViewData.Rows = 6;
             MainViewData.Columns = 15;
             this.DataContext = this;
             MainViewData.GetViewFromAddressString("");
 
-        }
-
-        public void CreateRowAndColumnDefinitions(int rows, int columns)
-        {
-            for (int i = 0; i < columns; i++)
-            {
-                // Create column definitions
-                //GroupsList.
-            }
-            for (int i = 0; i < rows; i++)
-            {
-                // Create row definitions
-            }
-        }
-
-        private void Icon_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            FrameworkElement senderElement = (FrameworkElement)sender;
-            var icon = senderElement.DataContext as FFBase;
-
-            if (icon != null)
-            {
-                var relativePosition = e.GetPosition(senderElement);
-                var point = senderElement.PointToScreen(relativePosition);
-                icon.MouseDownAction(sender, e, ((int)point.X), ((int)point.Y));
-            }
         }
 
         private void HomeButton_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -210,21 +187,7 @@ namespace WindowsExplorer_WPF
         private void ResizeMainGridWidth(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             int colCount = (int)IconSizeSlider.Value;
-            SetMainViewColumnCount(colCount);
-        }
-
-        private void SetMainViewColumnCount(int colCount)
-        {
-            UniformGrid ug = GetAllGroupGrids();
-            if (ug != null)
-            {
-                ug.Columns = colCount;
-            }
-        }
-
-        UniformGrid GetAllGroupGrids()
-        {
-            return WindowHelpers.FindChild<UniformGrid>(MainWindowGrid, "GroupGrid");
+            MainViewData.Columns = colCount;
         }
 
         private void ScrollViewer_MouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
@@ -270,6 +233,20 @@ namespace WindowsExplorer_WPF
             }
         }
 
+        private void Icon_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            FrameworkElement senderElement = (FrameworkElement)sender;
+            var icon = senderElement.DataContext as FFBase;
+
+            if (icon != null)
+            {
+                var relativePosition = e.GetPosition(senderElement);
+                var point = senderElement.PointToScreen(relativePosition);
+
+                this.MainViewData.MainViewIconClicked((int)point.X, (int)point.Y, e, icon, senderElement);
+            }
+        }
+
         private void GroupName_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             var _sender = (TextBlock)sender;
@@ -308,32 +285,25 @@ namespace WindowsExplorer_WPF
                 ((ListView)item).UnselectAll();
             }
         }
-
-        private void CloseMainWindow(object sender, System.EventArgs e)
-        {
-            Application.Current.Shutdown();
-        }
-
         private void SortByTotalSize(object sender, RoutedEventArgs e)
         {
-            MainViewData.SortGroupNames(MainViewData.Groups, GroupSortBy.TotalSize);
+            MainViewData.SortGroupNames(GroupSortBy.TotalSize);
         }
 
         private void SortByGroupCount(object sender, RoutedEventArgs e)
         {
-            MainViewData.SortGroupNames(MainViewData.Groups, GroupSortBy.Count);
+            MainViewData.SortGroupNames(GroupSortBy.Count);
         }
 
         private void SortByGroupLatestItem(object sender, RoutedEventArgs e)
         {
-            MainViewData.SortGroupNames(MainViewData.Groups, GroupSortBy.NewestItem);
+            MainViewData.SortGroupNames(GroupSortBy.NewestItem);
         }
 
         private void SortByGroupNames(object sender, RoutedEventArgs e)
         {
-            MainViewData.SortGroupNames(MainViewData.Groups, GroupSortBy.Name);
+            MainViewData.SortGroupNames(GroupSortBy.Name);
         }
-
 
         private void MainViewArea_KeyDown(object sender, KeyEventArgs e)
         {
@@ -349,14 +319,52 @@ namespace WindowsExplorer_WPF
             {
 
             }
-        }
+            if (e.Key == Key.F2)
+            {
 
+            }
+        }
 
         private void NewGroupBy_Click(object sender, RoutedEventArgs e)
         {
             CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(GroupsList.ItemsSource);
             PropertyGroupDescription groupDescription = new PropertyGroupDescription("Type");
             view.GroupDescriptions.Add(groupDescription);
+        }
+
+        private void MainViewGrid_Loaded(object sender, RoutedEventArgs e)
+        {
+            MainViewContext.MainGrid = (Grid)sender;
+            this.MainViewData.ResizeGrid(MainViewData.Rows, MainViewData.Columns);
+        }
+
+        private void CloseMainWindow(object sender, System.EventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        private void TreeView_Loaded(object sender, RoutedEventArgs e)
+        {
+            //this.SideTreeView = sender as TreeView;
+            //FloatingTree floatingTree = new FloatingTree();
+            //floatingTree.DisplayTree.ItemTemplate = this.SideTreeView.ItemTemplate;
+            //floatingTree.DisplayTree.
+            //foreach (var item in this.SideTreeView.Items)
+            //{
+            //    floatingTree.DisplayTree.Items.Add(item);
+            //}
+            //floatingTree.Show();
+        }
+
+        private void ContextName_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var element = sender as TextBlock;
+            MainViewData = MainViewContext.GetMainViewData(element.Text);
+        }
+
+        private void AddNewContextClick(object sender, MouseButtonEventArgs e)
+        {
+            MainViewContext.AddNewMainViewData($"View{new Random().Next()}");
         }
     }
     class FFBaseEqualityComparer : IEqualityComparer<FFBase>

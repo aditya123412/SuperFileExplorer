@@ -1,0 +1,41 @@
+﻿<Window x:Class="WindowsExplorer_WPF_NET.Controls.Commands_Menu"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WindowsExplorer_WPF_NET.Controls"
+        xmlns:data="clr-namespace:WindowsExplorer_WPF_NET.Misc.Data" d:DataContext="{d:DesignInstance Type=data:OpGroups}"
+        mc:Ignorable="d"
+        MouseLeave="CloseMenu"
+        Title="Commands_Menu" Height="450" Width="800" WindowStyle="None" ShowInTaskbar="False" SizeToContent="WidthAndHeight" Topmost="True" WindowStartupLocation="CenterOwner" IsTabStop="False">
+    <StackPanel>
+        <ListView ItemsSource="{Binding Path=CommandsMenuContext.OpGroups.SubGroups}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="{Binding Path=DefaultIcon}"></Image>
+                        <TextBlock Text="{Binding Path=OpGroupName}"  MouseMove="ItemHover" FontWeight="Bold"></TextBlock>
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"></StackPanel>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+        </ListView>
+        <ListView ItemsSource="{Binding Path=CommandsMenuContext.OpGroups.Commands}">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid></UniformGrid>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Name}" MouseDown="CommandItem_MouseDown"></TextBlock>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </StackPanel>
+
+</Window>

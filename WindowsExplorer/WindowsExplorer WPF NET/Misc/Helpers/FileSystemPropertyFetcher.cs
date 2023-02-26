@@ -2,6 +2,7 @@
 using System.Windows.Media.Imaging;
 using Microsoft.WindowsAPICodePack.Shell;
 using WindowsExplorer_WPF.Misc;
+using WindowsExplorer_WPF.Misc.Helpers;
 
 namespace WindowsExplorer_WPF_NET.Misc.Data
 {

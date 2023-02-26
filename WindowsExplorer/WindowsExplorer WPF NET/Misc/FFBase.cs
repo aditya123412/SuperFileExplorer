@@ -12,10 +12,13 @@ using System.Collections.ObjectModel;
 
 namespace WindowsExplorer_WPF.Misc
 {
-    public class FFBase : System.ComponentModel.INotifyPropertyChanged
+    public class FFBase : INotifyPropertyChanged
     {
-        private Timer timer;
-        bool isSecondClick = false;
+        private string _location;
+        private string fullpath;
+
+        public Timer timer;
+        public bool isSecondClick = false;
 
         public const string Click = "Click";
         public const string DoubleClick = "DoubleClick";
@@ -27,8 +30,35 @@ namespace WindowsExplorer_WPF.Misc
         public BitmapSource Thumbnail { get; set; }
         public string Name { get; set; }
         public long Size { get; set; }
-        public string Location { get; set; }
-        public string FullPath { get; set; }
+        public string Location
+        {
+            get
+            {
+                return _location;
+            }
+        }
+        public string FullPath
+        {
+            get
+            {
+                return fullpath;
+            }
+            set
+            {
+                fullpath = value;
+                try
+                {
+                    if (fullpath.Length > 4)
+                    {
+                        _location = System.IO.Directory.GetParent(FullPath).FullName;
+                    }
+                }
+                catch (Exception)
+                {
+                    _location = "";
+                }
+            }
+        }
         public bool IsFolder { get; set; }
         public bool HasThumbnail { get; set; }
         public bool Selected { get; set; }
@@ -40,71 +70,52 @@ namespace WindowsExplorer_WPF.Misc
         public DateTime Created { get; set; }
         public bool SupportsThumbnail { get; set; }
         public Visibility MenuVisible { get; set; } = Visibility.Collapsed;
-        public void MouseDownAction(object sender, System.Windows.Input.MouseButtonEventArgs e, int X = 0, int Y = 0)
-        {
-            switch (e.ChangedButton)
-            {
-                case System.Windows.Input.MouseButton.Left:
-                    SingleClickIcon();
-                    if (isSecondClick)
-                    {
-                        DoubleClickIcon();
-                        isSecondClick = false;
-                        timer.Stop();
-                    }
-                    else
-                    {
-                        isSecondClick = true;
-                        timer.Start();
-                    }
-                    break;
-                case System.Windows.Input.MouseButton.Middle:
-                    break;
-                case System.Windows.Input.MouseButton.Right:
-                    var context = new CommandsMenuContext();
-                    var commandsMenu = new Commands_Menu(context);
-                    commandsMenu.Show();
-                    commandsMenu.CommandsMenuContext.AddCommand(new Command() { Name = "Delete" }, new string[] { });
-                    commandsMenu.CommandsMenuContext.AddCommand(new Command() { Name = "Delete" }, new string[] { "Edit", "Actions", "CActions", "RActions" });
-                    commandsMenu.CommandsMenuContext.AddCommand(new Command() { Name = "Delete" }, new string[] { "Edit", "Actions", "Jacksons", "FActions" });
-                    commandsMenu.CommandsMenuContext.AddCommand(new Command() { Name = "Delete" }, new string[] { "View", "Actions" });
-                    commandsMenu.CommandsMenuContext.AddCommand(new Command() { Name = "Delete" }, new string[] { "Selection", "Actions" });
-                    commandsMenu.CommandsMenuContext.AddCommand(new Command() { Name = "Delete" }, new string[] { "Bookmark", "Actions" });
-                    commandsMenu.Top = Y - commandsMenu.Height / 2 - 20;
-                    commandsMenu.Left = X - commandsMenu.Width / 2 - 20;
-                    break;
-                case System.Windows.Input.MouseButton.XButton1:
-                    break;
-                case System.Windows.Input.MouseButton.XButton2:
-                    break;
-                default:
-                    break;
-            }
-        }
-
         public Action DoubleClickIcon = () => { };
         public Action SingleClickIcon = () => { };
 
-        public event PropertyChangedEventHandler PropertyChanged = (o, s) => { };
-
         public FFBase()
         {
-
-            timer = new Timer();
-            timer.Interval = 200;
-            timer.Elapsed += new ElapsedEventHandler(Elapsed_EventHandler);
+            InitClickTimer();
         }
+
         public FFBase(FFBase baseObj, ICollection<QueryObject> queryObjects, ICollection<IPropertyQueryResultProvider> PropertyQueryResultProviders)
         {
+            InitClickTimer();
             var propService = new PropertyFetchingService();
             foreach (var queryObject in queryObjects)
             {
-
                 var prop = propService.FetchProperty(baseObj.FullPath, queryObjects, PropertyQueryResultProviders, null);
                 if (prop != null)
                     SetProperty(queryObject, prop);
             }
         }
+
+        private void InitClickTimer()
+        {
+            timer = new Timer();
+            timer.Interval = 200;
+            timer.Elapsed += new ElapsedEventHandler(Elapsed_EventHandler);
+        }
+
+        public CommandsMenuContext SetFFbaseActionsToMenuContext(CommandsMenuContext commandsMenuContext)
+        {
+            commandsMenuContext.AddCommand(new Command() { Name = "Cut" }, new string[] { "File", "Actions", "Cut" });
+            commandsMenuContext.AddCommand(new Command() { Name = "Copy" }, new string[] { "File", "Actions", "Copy" });
+            commandsMenuContext.AddCommand(new Command() { Name = "Paste" }, new string[] { "File", "Actions", "Paste" });
+            commandsMenuContext.AddCommand(new Command() { Name = "Rename" }, new string[] { "File", "Actions", "Rename" });
+            commandsMenuContext.AddCommand(new Command()
+            {
+                Name = "Create New Folder",
+                Action = (obj) =>
+                {
+                    System.IO.Directory.CreateDirectory(this.Location);
+                    MainViewContext.CommonInstance.Refresh();
+                }
+            }, new string[] { "File", "New Folder" });
+
+            return commandsMenuContext;
+        }
+        public event PropertyChangedEventHandler PropertyChanged = (o, s) => { };
 
         public object this[FieldName fieldName]
         {
@@ -170,14 +181,8 @@ namespace WindowsExplorer_WPF.Misc
                         Thumbnail = value as BitmapImage;
                         HasThumbnail = true;
                         break;
-                    case FieldName.Size:
-                        Size = (int)value;
-                        break;
                     case FieldName.FullPath:
                         FullPath = (string)value;
-                        break;
-                    case FieldName.Location:
-                        Location = (string)value;
                         break;
                     case FieldName.IsFolder:
                         IsFolder = (bool)value;
