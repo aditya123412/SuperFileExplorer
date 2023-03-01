@@ -15,6 +15,7 @@ using WindowsExplorer_WPF_NET.Misc;
 using System.Windows.Data;
 using WindowsExplorer_WPF_NET.Controls;
 using System;
+using WindowsExplorer_WPF.Misc.Helpers;
 
 namespace WindowsExplorer_WPF
 {
@@ -25,7 +26,6 @@ namespace WindowsExplorer_WPF
     {
         Dictionary<string, ObservableCollection<FFBase>> Lists = new Dictionary<string, ObservableCollection<FFBase>>();
         private readonly string CLIPBOARD = "$CLIPBOARD";
-
         public CollectionViewSource csv;
 
         public MainViewContext MainViewData { get; set; }
@@ -36,23 +36,23 @@ namespace WindowsExplorer_WPF
         {
             //InitializeComponent();
             MainViewData = new MainViewContext();
-            MainViewData.Rows = 6;
-            MainViewData.Columns = 15;
             this.DataContext = this;
-            MainViewData.GetViewFromAddressString("");
+            MainViewData.CurrentContext.Rows = 1000;
+            MainViewData.CurrentContext.Columns = 15;
+            MainViewData.CurrentContext.GetViewFromAddressString("");
 
         }
 
         private void HomeButton_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            MainViewData.GetViewFromAddressString("");
+            MainViewData.CurrentContext.GetViewFromAddressString("");
             GroupsList.Focus();
         }
 
         private void BreadCrumbClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             var crumbAddressInTag = ((FrameworkElement)sender).Tag as string;
-            MainViewData.GetViewFromAddressString(crumbAddressInTag);
+            MainViewData.CurrentContext.GetViewFromAddressString(crumbAddressInTag);
         }
 
         private void Copy(object sender, RoutedEventArgs e)
@@ -89,7 +89,7 @@ namespace WindowsExplorer_WPF
                         break;
                 }
             }
-            MainViewData.Refresh();
+            MainViewData.Refresh(MainViewData.CurrentContext);
         }
 
         private object CopyDirectoryRecursive(string SourceFolderName, string DestFolderName)
@@ -137,7 +137,7 @@ namespace WindowsExplorer_WPF
                     }
                 }
             }
-            MainViewData.Refresh();
+            MainViewData.Refresh(MainViewData.CurrentContext);
         }
 
         private void GroupsList_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -176,7 +176,7 @@ namespace WindowsExplorer_WPF
 
             System.Func<IEnumerable<FFBase>, IEnumerable<FFBase>> sortItemsFunction = (IEnumerable<FFBase> ffbases) => ffbases;
 
-            MainViewData.GroupBy(groupNameFunc, sortGroupsByNameFunction, sortItemsFunction);
+            MainViewData.GroupBy(groupNameFunc, sortGroupsByNameFunction, sortItemsFunction, MainViewData.CurrentContext);
         }
 
         private void SortBy(object sender, RoutedEventArgs e)
@@ -187,7 +187,7 @@ namespace WindowsExplorer_WPF
         private void ResizeMainGridWidth(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             int colCount = (int)IconSizeSlider.Value;
-            MainViewData.Columns = colCount;
+            MainViewData.CurrentContext.Columns = colCount;
         }
 
         private void ScrollViewer_MouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
@@ -203,7 +203,7 @@ namespace WindowsExplorer_WPF
                 switch (e.ChangedButton)
                 {
                     case System.Windows.Input.MouseButton.Left:
-                        MainViewData.GetViewFromAddressString(treeNode.FullPath);
+                        treeNode.Context.GetViewFromAddressString(treeNode.FullPath);
                         break;
                     case System.Windows.Input.MouseButton.Middle:
                         break;
@@ -225,26 +225,27 @@ namespace WindowsExplorer_WPF
             var treeNode = (TreeNodeItem)((TreeViewItem)e.OriginalSource).DataContext;
             if (treeNode != null)
             {
-                if (MainViewData.MainViewAddress == treeNode.FullPath)
+                if (treeNode.MainViewAddress == treeNode.FullPath)
                 {
                     return;
                 }
-                MainViewData.SetTreeViewItems(treeNode.FullPath);
+                treeNode.Context.SetTreeViewItems(treeNode.FullPath);
             }
         }
 
         private void Icon_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             FrameworkElement senderElement = (FrameworkElement)sender;
-            var icon = senderElement.DataContext as FFBase;
-
-            if (icon != null)
+            var ffbase = senderElement.DataContext as FFBase;
+            if (ffbase != null)
             {
                 var relativePosition = e.GetPosition(senderElement);
                 var point = senderElement.PointToScreen(relativePosition);
 
-                this.MainViewData.MainViewIconClicked((int)point.X, (int)point.Y, e, icon, senderElement);
+                this.MainViewData.MainViewIconClicked((int)point.X, (int)point.Y, e, ffbase, senderElement);
             }
+            TabView.UpdateLayout();
+            TabView.InvalidateVisual();
         }
 
         private void GroupName_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -287,22 +288,22 @@ namespace WindowsExplorer_WPF
         }
         private void SortByTotalSize(object sender, RoutedEventArgs e)
         {
-            MainViewData.SortGroupNames(GroupSortBy.TotalSize);
+            MainViewData.SortGroupNames(GroupSortBy.TotalSize, MainViewData.CurrentContext, false);
         }
 
         private void SortByGroupCount(object sender, RoutedEventArgs e)
         {
-            MainViewData.SortGroupNames(GroupSortBy.Count);
+            MainViewData.SortGroupNames(GroupSortBy.Count, MainViewData.CurrentContext, false);
         }
 
         private void SortByGroupLatestItem(object sender, RoutedEventArgs e)
         {
-            MainViewData.SortGroupNames(GroupSortBy.NewestItem);
+            MainViewData.SortGroupNames(GroupSortBy.NewestItem, MainViewData.CurrentContext, false);
         }
 
         private void SortByGroupNames(object sender, RoutedEventArgs e)
         {
-            MainViewData.SortGroupNames(GroupSortBy.Name);
+            MainViewData.SortGroupNames(GroupSortBy.Name, MainViewData.CurrentContext, false);
         }
 
         private void MainViewArea_KeyDown(object sender, KeyEventArgs e)
@@ -334,8 +335,8 @@ namespace WindowsExplorer_WPF
 
         private void MainViewGrid_Loaded(object sender, RoutedEventArgs e)
         {
-            MainViewContext.MainGrid = (Grid)sender;
-            this.MainViewData.ResizeGrid(MainViewData.Rows, MainViewData.Columns);
+            MainViewData.CurrentContext.MainGrid = (Grid)sender;
+            this.MainViewData.CurrentContext.ResizeGrid(MainViewData.CurrentContext.Rows, MainViewData.CurrentContext.Columns);
         }
 
         private void CloseMainWindow(object sender, System.EventArgs e)
@@ -359,12 +360,22 @@ namespace WindowsExplorer_WPF
         private void ContextName_MouseDown(object sender, MouseButtonEventArgs e)
         {
             var element = sender as TextBlock;
-            MainViewData = MainViewContext.GetMainViewData(element.Text);
+            //MainViewData = MainViewContext.GetMainViewData(element.Text);
         }
 
         private void AddNewContextClick(object sender, MouseButtonEventArgs e)
         {
             MainViewContext.AddNewMainViewData($"View{new Random().Next()}");
+        }
+
+        private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var tab = (TabControl)sender;
+        }
+
+        private void AddTab_Click(object sender, RoutedEventArgs e)
+        {
+            MainViewData.Tabs.Add(new ContextBasicData());
         }
     }
     class FFBaseEqualityComparer : IEqualityComparer<FFBase>

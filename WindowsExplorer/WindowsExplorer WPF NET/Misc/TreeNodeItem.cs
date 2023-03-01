@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Media.Imaging;
 using WindowsExplorer_WPF.Misc;
+using WindowsExplorer_WPF_NET.Misc.Data;
 
 namespace WindowsExplorer_WPF_NET.Misc
 {
@@ -18,6 +19,8 @@ namespace WindowsExplorer_WPF_NET.Misc
         public BitmapSource Thumbnail { get; set; }
         public Action<TreeNodeItem> Click { get; set; } = (TreeNodeItem t) => { };
         public ObservableCollection<TreeNodeItem> TreeData { get; set; }
+        public ContextBasicData Context { get; set; }
+        public string MainViewAddress { get; internal set; }
 
         public TreeNodeItem(string caption, string fullpath, bool createDefaultCollectionChild = false, bool expand = false)
         {

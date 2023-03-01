@@ -30,7 +30,7 @@
             <RowDefinition Height="30" />
         </Grid.RowDefinitions>
         <!--<Tree view>-->
-        <TreeView Grid.Row="3" Grid.Column="0" ItemsSource="{Binding MainViewData.TreeDataRoot.TreeData}" TreeViewItem.Expanded="TreeView_Expanded" Loaded="TreeView_Loaded">
+        <!--<TreeView Grid.Row="3" Grid.Column="0" ItemsSource="{Binding MainViewData.TreeDataRoot.TreeData}" TreeViewItem.Expanded="TreeView_Expanded" Loaded="TreeView_Loaded">
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type misc2:TreeNodeItem}" ItemsSource="{Binding TreeData}">
                     <StackPanel Orientation="Horizontal" MouseDown="TreeItemClick">
@@ -44,9 +44,106 @@
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
                 </Style>
             </TreeView.ItemContainerStyle>
-        </TreeView>
+        </TreeView>-->
         <!--<Main view area>-->
-        <ScrollViewer x:Name="MainScrollableArea" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"  Grid.Column="1" Grid.Row="3"  SizeChanged="GroupGrid_SizeChanged" MouseWheel="ScrollViewer_MouseWheel" MouseDown="MainScrollableArea_MouseDown">
+        <TabControl x:Name="TabView" ItemsSource="{Binding MainViewData.Tabs}" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3" SelectionChanged="TabControl_SelectionChanged">
+            <TabControl.ItemTemplate>
+                <!-- this is the header template-->
+                <DataTemplate>
+                    <TextBlock Text="{Binding Path=Name}" />
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+            <TabControl.ContentTemplate>
+                <!-- this is the body of the TabItem template-->
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220"></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="220"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="50"></RowDefinition>
+                            <RowDefinition Height="*"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <!--<Address bar and Breadcrumbs>-->
+                        <StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
+                            <StackPanel x:Name="AddressBarContainer" Orientation="Horizontal">
+                                <StackPanel.Background>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="#FF38A71A" Offset="0.866"/>
+                                        <GradientStop Color="#FF9AECB5"/>
+                                    </LinearGradientBrush>
+                                </StackPanel.Background>
+                                <TextBlock  TextAlignment="Center" MouseDown="HomeButton_MouseLeftButtonDown" FontWeight="Bold" Width="58" Height="22" VerticalAlignment="Center" FontSize="13" Margin="8,0,0,0"><Run Text="Home"/></TextBlock>
+                                <ListView ItemsSource="{Binding BreadCrumbs}" BorderThickness="0,0,0,0" SnapsToDevicePixels="True">
+                                    <ListView.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <StackPanel.Background>
+                                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                        <GradientStop Color="#FF38A71A" Offset="0.866"/>
+                                                        <GradientStop Color="#FF9AECDF"/>
+                                                    </LinearGradientBrush>
+                                                </StackPanel.Background>
+                                            </StackPanel>
+                                        </ItemsPanelTemplate>
+                                    </ListView.ItemsPanel>
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Caption}" MouseDown="BreadCrumbClick" FontSize="13" FontWeight="DemiBold" Tag="{Binding FullPath}" Margin="-5,0,-5,0" Background="#00000000"/>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </StackPanel>
+                        </StackPanel>
+                        <!--/// Tree view-->
+                        <TreeView Grid.Row="1" Grid.Column="0" ItemsSource="{Binding TreeDataRoot.TreeData}" TreeViewItem.Expanded="TreeView_Expanded" Loaded="TreeView_Loaded">
+                            <TreeView.ItemTemplate>
+                                <HierarchicalDataTemplate DataType="{x:Type misc2:TreeNodeItem}" ItemsSource="{Binding TreeData}">
+                                    <StackPanel Orientation="Horizontal" MouseDown="TreeItemClick">
+                                        <Image Source="{Binding Thumbnail, AsyncState=true}" Width="13" Height="13"/>
+                                        <TextBlock Text="{Binding Caption}"/>
+                                    </StackPanel>
+                                </HierarchicalDataTemplate>
+                            </TreeView.ItemTemplate>
+                            <TreeView.ItemContainerStyle>
+                                <Style TargetType="{x:Type TreeViewItem}">
+                                    <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+                                </Style>
+                            </TreeView.ItemContainerStyle>
+                        </TreeView>
+                        <!--<Main Grid>-->
+                        <ListView x:Name="GridList" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding MasterViewList}">
+                            <ListView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Grid x:Name="MainViewGrid" Loaded="MainViewGrid_Loaded" KeyDown="MainViewArea_KeyDown" MouseDown="GroupGrid_MouseDown"/>
+                                </ItemsPanelTemplate>
+                            </ListView.ItemsPanel>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel HorizontalAlignment="Center" Margin="17" KeyDown="MainViewArea_KeyDown" Width="90">
+                                        <Image x:Name="IconThumbnail" MouseDown="Icon_Click" Source="{Binding Thumbnail, AsyncState=true}" Width="80" Height="80" Stretch="Fill" KeyDown="MainViewArea_KeyDown"/>
+                                        <TextBlock x:Name="IconLabel" TextAlignment="Center" MouseDown="Icon_Click" Tag="{Binding FullPath}" Text="{Binding Name}" Width="80" Height="30" TextWrapping="Wrap"  KeyDown="MainViewArea_KeyDown"/>
+                                        <!--<StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Size}" FontSize="9" FontWeight="Normal"/>
+                                            <TextBlock Text="{Binding Created, Converter={StaticResource DateTimeToDateConverter}}" FontSize="9" TextAlignment="Right"/>
+                                        </StackPanel>-->
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                            <ListView.ItemContainerStyle>
+                                <Style>
+                                    <Setter Property="Grid.Row" Value="{Binding Y}" />
+                                    <Setter Property="Grid.Column" Value="{Binding X}" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                        </ListView>
+                    </Grid>
+                </DataTemplate>
+            </TabControl.ContentTemplate>
+        </TabControl>
+        <ScrollViewer x:Name="MainScrollableArea" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"  SizeChanged="GroupGrid_SizeChanged" MouseWheel="ScrollViewer_MouseWheel" MouseDown="MainScrollableArea_MouseDown">
             <!--<ListView ItemsSource="{Binding Path=MainViewData.Groups}" Name="GroupsList" SelectionChanged="GroupsList_SelectionChanged" MouseWheel="ScrollViewer_MouseWheel" MouseDown="GroupsList_MouseDown" KeyDown="MainViewArea_KeyDown">
                 <ListView.ItemTemplate>
                     <DataTemplate>
@@ -103,56 +200,6 @@
                 </ListView.ItemContainerStyle>
             </ListView>
         </ScrollViewer>
-
-        <!--<Address bar and Breadcrumbs>-->
-        <StackPanel Orientation="Vertical" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3">
-            <StackPanel Orientation="Horizontal">
-                <ListView ItemsSource="{Binding MainViewData.ContextNames}">
-                    <ListView.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal"></StackPanel>
-                        </ItemsPanelTemplate>
-                    </ListView.ItemsPanel>
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock MouseDown="ContextName_MouseDown" Text="{Binding}"></TextBlock>
-                                <Button Content="X"></Button>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-                <TextBlock Text="+" MouseDown="AddNewContextClick"></TextBlock>
-            </StackPanel>
-            <StackPanel x:Name="AddressBarContainer" Orientation="Horizontal">
-                <StackPanel.Background>
-                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                        <GradientStop Color="#FF38A71A" Offset="0.866"/>
-                        <GradientStop Color="#FF9AECB5"/>
-                    </LinearGradientBrush>
-                </StackPanel.Background>
-                <TextBlock  TextAlignment="Center" MouseDown="HomeButton_MouseLeftButtonDown" FontWeight="Bold" Width="58" Height="22" VerticalAlignment="Center" FontSize="13" Margin="8,0,0,0"><Run Text="Home"/></TextBlock>
-                <ListView ItemsSource="{Binding MainViewData.BreadCrumbs}" BorderThickness="0,0,0,0" SnapsToDevicePixels="True">
-                    <ListView.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <StackPanel.Background>
-                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                        <GradientStop Color="#FF38A71A" Offset="0.866"/>
-                                        <GradientStop Color="#FF9AECDF"/>
-                                    </LinearGradientBrush>
-                                </StackPanel.Background>
-                            </StackPanel>
-                        </ItemsPanelTemplate>
-                    </ListView.ItemsPanel>
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Caption}" MouseDown="BreadCrumbClick" FontSize="13" FontWeight="DemiBold" Tag="{Binding FullPath}" Margin="-5,0,-5,0" Background="#00000000"/>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </StackPanel>
-        </StackPanel>
         <StatusBar Grid.Row="4" Grid.ColumnSpan="3" Grid.Column="0"/>
         <!--<Top Toolbar>-->
         <UniformGrid Rows="1" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" HorizontalAlignment="Left">
@@ -209,7 +256,10 @@
                 </Button>
             </UniformGrid>
             <UniformGrid Rows="2" >
-                <Slider x:Name="IconSizeSlider" Minimum="10" Maximum="40" ValueChanged="ResizeMainGridWidth"/>
+                <Slider x:Name="IconSizeSlider" Minimum="10" Value="16" Maximum="40" ValueChanged="ResizeMainGridWidth"/>
+                <Button Click="AddTab_Click" >
+                    <TextBlock>Add Tab</TextBlock>
+                </Button>
             </UniformGrid>
             <UniformGrid Rows="2" Columns="2" Margin="3 3 8 3">
                 <Button Width="80" Margin="1" Click="SortByGroupNames">

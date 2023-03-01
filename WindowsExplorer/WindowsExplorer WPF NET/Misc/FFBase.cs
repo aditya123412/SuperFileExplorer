@@ -20,6 +20,7 @@ namespace WindowsExplorer_WPF.Misc
         public Timer timer;
         public bool isSecondClick = false;
 
+        public ContextBasicData ContextBasicData { get; set; }
         public const string Click = "Click";
         public const string DoubleClick = "DoubleClick";
         public const string CopyToClipboard = "CopyToClipboard";
@@ -109,7 +110,7 @@ namespace WindowsExplorer_WPF.Misc
                 Action = (obj) =>
                 {
                     System.IO.Directory.CreateDirectory(this.Location);
-                    MainViewContext.CommonInstance.Refresh();
+                    MainViewContext.CommonInstance.Refresh(ContextBasicData);
                 }
             }, new string[] { "File", "New Folder" });
 
