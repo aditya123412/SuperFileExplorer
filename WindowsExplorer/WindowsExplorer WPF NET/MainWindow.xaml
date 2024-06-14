@@ -1,0 +1,300 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:misc2="clr-namespace:WindowsExplorer_WPF_NET.Misc"
+        xmlns:controls="System.Windows.Data" 
+        xmlns:conv="WindowsExplorer_WPF_NET.Misc.Converters"
+        xmlns:misc="clr-namespace:WindowsExplorer_WPF.Misc" 
+        xmlns:Converters="clr-namespace:WindowsExplorer_WPF_NET.Misc.Converters" x:Class="WindowsExplorer_WPF.MainWindow" 
+        d:DataContext="{d:DesignInstance Type={x:Type misc:MainViewContext}}"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800" WindowState="Maximized"
+        x:Name="MainWindow1"
+        Closed="CloseMainWindow">
+    <Window.Resources>
+        <Converters:DateTimeToDateConverter x:Key="DateTimeToDateConverter"/>
+    </Window.Resources>
+    <Grid x:Name="MainWindowGrid">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" x:Name="LeftPane"/>
+            <ColumnDefinition Width="*" x:Name="Middle"/>
+            <ColumnDefinition Width="300" x:Name="RightPane"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30" />
+            <RowDefinition Height="60" />
+            <RowDefinition Height="60" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="30" />
+        </Grid.RowDefinitions>
+        <!--<Tree view>-->
+        <!--<TreeView Grid.Row="3" Grid.Column="0" ItemsSource="{Binding MainViewData.TreeDataRoot.TreeData}" TreeViewItem.Expanded="TreeView_Expanded" Loaded="TreeView_Loaded">
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type misc2:TreeNodeItem}" ItemsSource="{Binding TreeData}">
+                    <StackPanel Orientation="Horizontal" MouseDown="TreeItemClick">
+                        <Image Source="{Binding Thumbnail, AsyncState=true}" Width="13" Height="13"/>
+                        <TextBlock Text="{Binding Caption}"/>
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+                </Style>
+            </TreeView.ItemContainerStyle>
+        </TreeView>-->
+        <!--<Main view area>-->
+        <TabControl x:Name="TabView" ItemsSource="{Binding MainViewData.Tabs}" Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="3" SelectionChanged="TabControl_SelectionChanged">
+            <TabControl.ItemTemplate>
+                <!-- this is the header template-->
+                <DataTemplate>
+                    <TextBlock Text="{Binding Path=Name}" />
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+            <TabControl.ContentTemplate>
+                <!-- this is the body of the TabItem template-->
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="220"></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="220"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="50"></RowDefinition>
+                            <RowDefinition Height="*"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <!--<Address bar and Breadcrumbs>-->
+                        <StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3">
+                            <StackPanel x:Name="AddressBarContainer" Orientation="Horizontal">
+                                <StackPanel.Background>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="#FF38A71A" Offset="0.866"/>
+                                        <GradientStop Color="#FF9AECB5"/>
+                                    </LinearGradientBrush>
+                                </StackPanel.Background>
+                                <TextBlock  TextAlignment="Center" MouseDown="HomeButton_MouseLeftButtonDown" FontWeight="Bold" Width="58" Height="22" VerticalAlignment="Center" FontSize="13" Margin="8,0,0,0"><Run Text="Home"/></TextBlock>
+                                <ListView ItemsSource="{Binding BreadCrumbs}" BorderThickness="0,0,0,0" SnapsToDevicePixels="True">
+                                    <ListView.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <StackPanel.Background>
+                                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                        <GradientStop Color="#FF38A71A" Offset="0.866"/>
+                                                        <GradientStop Color="#FF9AECDF"/>
+                                                    </LinearGradientBrush>
+                                                </StackPanel.Background>
+                                            </StackPanel>
+                                        </ItemsPanelTemplate>
+                                    </ListView.ItemsPanel>
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Caption}" MouseDown="BreadCrumbClick" FontSize="13" FontWeight="DemiBold" Tag="{Binding FullPath}" Margin="-5,0,-5,0" Background="#00000000"/>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </StackPanel>
+                        </StackPanel>
+                        <!--/// Tree view-->
+                        <TreeView Grid.Row="1" Grid.Column="0" ItemsSource="{Binding TreeDataRoot.TreeData}" TreeViewItem.Expanded="TreeView_Expanded" Loaded="TreeView_Loaded">
+                            <TreeView.ItemTemplate>
+                                <HierarchicalDataTemplate DataType="{x:Type misc2:TreeNodeItem}" ItemsSource="{Binding TreeData}">
+                                    <StackPanel Orientation="Horizontal" MouseDown="TreeItemClick">
+                                        <Image Source="{Binding Thumbnail, AsyncState=true}" Width="13" Height="13"/>
+                                        <TextBlock Text="{Binding Caption}"/>
+                                    </StackPanel>
+                                </HierarchicalDataTemplate>
+                            </TreeView.ItemTemplate>
+                            <TreeView.ItemContainerStyle>
+                                <Style TargetType="{x:Type TreeViewItem}">
+                                    <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+                                </Style>
+                            </TreeView.ItemContainerStyle>
+                        </TreeView>
+                        <!--<Main Grid>-->
+                        <ListView x:Name="GridList" Grid.Row="1" Grid.Column="1" ItemsSource="{Binding MasterViewList}">
+                            <ListView.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Grid x:Name="MainViewGrid" Loaded="MainViewGrid_Loaded" KeyDown="MainViewArea_KeyDown" MouseDown="GroupGrid_MouseDown"/>
+                                </ItemsPanelTemplate>
+                            </ListView.ItemsPanel>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel HorizontalAlignment="Center" Margin="17" KeyDown="MainViewArea_KeyDown" Width="90">
+                                        <Image x:Name="IconThumbnail" MouseDown="Icon_Click" Source="{Binding Thumbnail, AsyncState=true}" Width="80" Height="80" Stretch="Fill" KeyDown="MainViewArea_KeyDown"/>
+                                        <TextBlock x:Name="IconLabel" TextAlignment="Center" MouseDown="Icon_Click" Tag="{Binding FullPath}" Text="{Binding Name}" Width="80" Height="30" TextWrapping="Wrap"  KeyDown="MainViewArea_KeyDown"/>
+                                        <!--<StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Size}" FontSize="9" FontWeight="Normal"/>
+                                            <TextBlock Text="{Binding Created, Converter={StaticResource DateTimeToDateConverter}}" FontSize="9" TextAlignment="Right"/>
+                                        </StackPanel>-->
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                            <ListView.ItemContainerStyle>
+                                <Style>
+                                    <Setter Property="Grid.Row" Value="{Binding Y}" />
+                                    <Setter Property="Grid.Column" Value="{Binding X}" />
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                        </ListView>
+                    </Grid>
+                </DataTemplate>
+            </TabControl.ContentTemplate>
+        </TabControl>
+        <ScrollViewer x:Name="MainScrollableArea" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"  SizeChanged="GroupGrid_SizeChanged" MouseWheel="ScrollViewer_MouseWheel" MouseDown="MainScrollableArea_MouseDown">
+            <!--<ListView ItemsSource="{Binding Path=MainViewData.Groups}" Name="GroupsList" SelectionChanged="GroupsList_SelectionChanged" MouseWheel="ScrollViewer_MouseWheel" MouseDown="GroupsList_MouseDown" KeyDown="MainViewArea_KeyDown">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel x:Name="GroupParent" Orientation="Vertical" MouseWheel="ScrollViewer_MouseWheel" KeyDown="MainViewArea_KeyDown">
+                            <TextBlock x:Name="GroupName" Text="{Binding Path=DataContext}" DataContext="{Binding Path=Value}" Margin="10" Background="Azure" MouseWheel="ScrollViewer_MouseWheel" MouseDown="GroupName_MouseDown" Keyboard.KeyDown="MainViewArea_KeyDown"></TextBlock>
+                            <ListView ItemsSource="{Binding Path=Value}" Name="ItemsList" SelectionChanged="ItemsList_SelectionChanged" MouseWheel="ScrollViewer_MouseWheel"  MouseDown="GroupGrid_MouseDown"  KeyDown="MainViewArea_KeyDown">
+                                <ListView.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid x:Name="GroupGrid" VerticalAlignment="Top" HorizontalAlignment="Left" Columns="15" MouseWheel="ScrollViewer_MouseWheel" MouseDown="GroupGrid_MouseDown" KeyDown="MainViewArea_KeyDown"/>
+                                    </ItemsPanelTemplate>
+                                </ListView.ItemsPanel>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel HorizontalAlignment="Center" Margin="7" Grid.Column="{Binding Path=X}" Grid.Row="{Binding Path=Y}" MouseWheel="ScrollViewer_MouseWheel" KeyDown="MainViewArea_KeyDown">
+                                            <StackPanel.Effect>
+                                                <DropShadowEffect/>
+                                            </StackPanel.Effect>
+                                            <Image x:Name="IconThumbnail" MouseDown="Icon_Click" Source="{Binding Path=Thumbnail, AsyncState=true}" Width="100" Height="100" Stretch="Fill" KeyDown="MainViewArea_KeyDown"/>
+                                            <TextBlock x:Name="IconLabel" TextAlignment="Center" MouseDown="Icon_Click" Tag="{Binding Path=FullPath}" Text="{Binding Path=Name}" Width="100" Height="30" TextWrapping="Wrap"  KeyDown="MainViewArea_KeyDown"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>-->
+            <ListView  x:Name="GroupsList" ItemsSource="{Binding MainViewData.MasterViewList}" KeyDown="MainViewArea_KeyDown">
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid x:Name="MainViewGrid" Loaded="MainViewGrid_Loaded" KeyDown="MainViewArea_KeyDown" MouseDown="GroupGrid_MouseDown"/>
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel HorizontalAlignment="Center" Margin="17" MouseWheel="ScrollViewer_MouseWheel" KeyDown="MainViewArea_KeyDown">
+                            <!--<StackPanel.Effect>
+                                <DropShadowEffect/>
+                            </StackPanel.Effect>-->
+                            <Image x:Name="IconThumbnail" MouseDown="Icon_Click" Source="{Binding Thumbnail, AsyncState=true}" Width="100" Height="100" Stretch="Fill" KeyDown="MainViewArea_KeyDown"/>
+                            <TextBlock x:Name="IconLabel" TextAlignment="Center" MouseDown="Icon_Click" Tag="{Binding FullPath}" Text="{Binding Name}" Width="100" Height="30" TextWrapping="Wrap"  KeyDown="MainViewArea_KeyDown"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Size}" FontSize="9" FontWeight="Normal"/>
+                                <TextBlock Text="{Binding Created, Converter={StaticResource DateTimeToDateConverter}}" FontSize="9" TextAlignment="Right"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+                <ListView.ItemContainerStyle>
+                    <Style>
+                        <Setter Property="Grid.Row" Value="{Binding Y}" />
+                        <Setter Property="Grid.Column" Value="{Binding X}" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
+        </ScrollViewer>
+        <StatusBar Grid.Row="4" Grid.ColumnSpan="3" Grid.Column="0"/>
+        <!--<Top Toolbar>-->
+        <UniformGrid Rows="1" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" HorizontalAlignment="Left">
+            <UniformGrid Rows="2" Columns="2" Margin="3 3 8 3">
+                <Button Width="80" Margin="1" Click="Copy">
+                    <StackPanel Orientation="Horizontal">
+                        <Image/>
+                        <TextBlock><Run Text="Copy to"/></TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Width="80" Margin="1" Click="Paste">
+                    <StackPanel Orientation="Horizontal">
+                        <Image/>
+                        <TextBlock><Run Text="Paste"/></TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Width="80" Margin="1" Click="Rename">
+                    <StackPanel Orientation="Horizontal">
+                        <Image/>
+                        <TextBlock><Run Text="Rename"/></TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Width="80" Margin="1" Click="Delete">
+                    <StackPanel Orientation="Horizontal">
+                        <Image/>
+                        <TextBlock><Run Text="Delete"/></TextBlock>
+                    </StackPanel>
+                </Button>
+            </UniformGrid>
+            <UniformGrid Rows="2" Columns="2" Margin="3 3 8 3">
+                <Button Width="80" Margin="1" Click="SortBy">
+                    <StackPanel Orientation="Horizontal">
+                        <Image/>
+                        <TextBlock><Run Text="Sort By"/></TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Width="80" Margin="1" Click="GroupBy">
+                    <StackPanel Orientation="Horizontal">
+                        <Image/>
+                        <TextBlock><Run Text="Group By"/></TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Width="80" Margin="1" Click="Rename">
+                    <StackPanel Orientation="Horizontal">
+                        <Image/>
+                        <TextBlock><Run Text="Filter"/></TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Width="80" Margin="1" Click="Delete">
+                    <StackPanel Orientation="Horizontal">
+                        <Image/>
+                        <TextBlock><Run Text="Custom"/></TextBlock>
+                    </StackPanel>
+                </Button>
+            </UniformGrid>
+            <UniformGrid Rows="2" >
+                <Slider x:Name="IconSizeSlider" Minimum="10" Value="16" Maximum="40" ValueChanged="ResizeMainGridWidth"/>
+                <Button Click="AddTab_Click" >
+                    <TextBlock>Add Tab</TextBlock>
+                </Button>
+            </UniformGrid>
+            <UniformGrid Rows="2" Columns="2" Margin="3 3 8 3">
+                <Button Width="80" Margin="1" Click="SortByGroupNames">
+                    <StackPanel Orientation="Horizontal">
+                        <Image/>
+                        <TextBlock><Run Text="Names"/></TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Width="80" Margin="1" Click="SortByGroupLatestItem">
+                    <StackPanel Orientation="Horizontal">
+                        <Image/>
+                        <TextBlock><Run Text="Latest Item"/></TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Width="80" Margin="1" Click="SortByGroupCount">
+                    <StackPanel Orientation="Horizontal">
+                        <Image/>
+                        <TextBlock><Run Text="Group Count"/></TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Width="80" Margin="1" Click="SortByTotalSize">
+                    <StackPanel Orientation="Horizontal">
+                        <Image/>
+                        <TextBlock><Run Text="Total Size"/></TextBlock>
+                    </StackPanel>
+                </Button>
+            </UniformGrid>
+            <!--<Button x:Name="NewGroupBy" Content="Group By new" Click="NewGroupBy_Click"></Button>-->
+        </UniformGrid>
+        <StackPanel Orientation="Vertical" x:Name="PropertiesBox" Grid.Row="3" Grid.Column="2">
+            <ListBox x:Name="SelectedItemsThumbnails"/>
+            <TextBlock x:Name="NumberOfSelectedItems"/>
+            <TextBlock x:Name="TotalSizeOfSelectedItems"/>
+            <TextBlock x:Name="Tags"/>
+            <ListBox x:Name="ContextActions"/>
+        </StackPanel>
+    </Grid>
+</Window>
