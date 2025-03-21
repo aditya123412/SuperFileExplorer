@@ -1,2 +1,2 @@
 # SuperFileExplorer
-A file explorer application with some added functionality
+A file explorer application designed in WPF with some added functionality
